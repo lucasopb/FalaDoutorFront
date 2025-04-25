@@ -7,46 +7,86 @@ const api = axios.create({
 
 // ---------------- MÉDICOS ----------------
 
-export const getDoctors = async (): Promise<Doctor[]> => {
-  const res = await api.get("/doctor");
-  console.log(res.data);
-  return res.data;
+// MÉDICOS
+
+export const getDoctors = async (): Promise<Patient[]> => {
+  try {
+    const res = await api.get("/doctor");
+    return res.data;
+  } catch (error: any) {
+    console.error("Erro ao pegar Usuários:", error.response?.data || error.message);
+    throw error;
+  }
 };
 
 export const createDoctor = async (doctor: Doctor) => {
-  const res = await api.post("/doctor", doctor);
-  return res.data;
+  try {
+    const res = await api.post("/doctor", doctor);
+    return res.data;
+  } catch (error: any) {
+    console.error("Erro ao criar medicos:", error.response?.data || error.message);
+    throw error;
+  }
 };
 
 export const updateDoctor = async (id: string, doctor: Doctor) => {
-  const res = await api.put(`/doctor/${id}`, doctor);
-  return res.data;
+  try {
+    const res = await api.put(`/doctor/${id}`, doctor);
+    return res.data;
+  } catch (error: any) {
+    console.error("Erro ao atualizar médico:", error.response?.data || error.message);
+    throw error;
+  }
 };
 
 export const deleteDoctor = async (id: string) => {
-  const res = await api.delete(`/doctor/${id}`);
-  return res.data;
+  try {
+    const res = await api.delete(`/doctor/${id}`);
+    return res.data;
+  } catch (error: any) {
+    console.error("Erro ao deletar médico:", error.response?.data || error.message);
+    throw error;
+  }
 };
 
-// ---------------- PACIENTES ----------------
+// PACIENTES
 
 export const getPatients = async (): Promise<Patient[]> => {
-  const res = await api.get("/patient");
-  console.log(res.data);
-  return res.data;
+  try {
+    const res = await api.get("/patient");
+    return res.data;
+  } catch (error: any) {
+    console.error("Erro ao pegar paciente:", error.response?.data || error.message);
+    throw error;
+  }
 };
 
 export const createPatient = async (patient: Patient) => {
-  const res = await api.post("/patient", patient);
-  return res.data;
+  try {
+    const res = await api.post("/patient", patient);
+    return res.data;
+  } catch (error: any) {
+    console.error("Erro ao criar paciente:", error.response?.data || error.message);
+    throw error;
+  }
 };
 
 export const updatePatient = async (id: string, patient: Patient) => {
-  const res = await api.put(`/patient/${id}`, patient);
-  return res.data;
+  try {
+    const res = await api.put(`/patient/${id}`, patient);
+    return res.data;
+  } catch (error: any) {
+    console.error("Erro ao atualizar paciente:", error.response?.data || error.message);
+    throw error;
+  }
 };
 
 export const deletePatient = async (id: string) => {
-  const res = await api.delete(`/patient/${id}`);
-  return res.data;
+  try {
+    const res = await api.delete(`/patient/${id}`);
+    return res.data;
+  } catch (error: any) {
+    console.error("Erro ao deletar paciente:", error.response?.data || error.message);
+    throw error;
+  }
 };

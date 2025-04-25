@@ -12,6 +12,7 @@ import {
 export default function PatientsPage() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [form, setForm] = useState<Partial<Patient>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [editId, setEditId] = useState<string | null>(null);
 
   const loadPatients = async () => {
@@ -23,14 +24,47 @@ export default function PatientsPage() {
     loadPatients();
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
     }));
+
+    // limpa erro do campo conforme digita
+    setErrors((prev) => ({
+      ...prev,
+      [e.target.name]: "",
+    }));
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!form.name || form.name.trim() === "") {
+      newErrors.name = "Nome é obrigatório.";
+    }
+
+    const cpf = form.cpf?.replace(/\D/g, "");
+    if (!cpf || cpf.length < 11) {
+      newErrors.cpf = "CPF deve ter 11 dígitos.";
+    }
+
+    if (!form.healthInsurance) {
+      newErrors.healthInsurance = "Selecione um plano de saúde.";
+    }
+
+    if (!form.birthDate) {
+      newErrors.birthDate = "Data de nascimento é obrigatória.";
+    }
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
+    if (!validateForm()) return;
+
     const preparedForm = {
       ...form,
       birthDate: form.birthDate
@@ -39,11 +73,13 @@ export default function PatientsPage() {
     };
 
     if (editId) {
-      await updatePatient(editId, preparedForm as unknown as Patient);
+      await updatePatient(editId, preparedForm as Patient);
     } else {
-      await createPatient(preparedForm as unknown as Patient);
+      await createPatient(preparedForm as Patient);
     }
+
     setForm({});
+    setErrors({});
     setEditId(null);
     loadPatients();
   };
@@ -56,6 +92,7 @@ export default function PatientsPage() {
       healthInsurance: patient.healthInsurance,
       birthDate: patient.birthDate?.toString().split("T")[0],
     });
+    setErrors({});
   };
 
   const handleDelete = async (id: string) => {
@@ -70,61 +107,82 @@ export default function PatientsPage() {
       <div className="mb-8 bg-white p-4 rounded-xl shadow border">
         <h2 className="text-xl font-semibold mb-4">{editId ? "Editar Paciente" : "Novo Paciente"}</h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-          <input
-            type="text"
-            name="name"
-            placeholder="Nome"
-            value={form.name || ""}
-            onChange={handleChange}
-            className="p-2 border rounded-md w-full"
-          />
-          <input
-            type="text"
-            name="cpf"
-            placeholder="CPF"
-            value={form.cpf || ""}
-            onChange={(e) => {
-              let value = e.target.value.replace(/\D/g, '').slice(0, 11);
+          {/* Nome */}
+          <div>
+            <input
+              type="text"
+              name="name"
+              placeholder="Nome"
+              value={form.name || ""}
+              onChange={handleChange}
+              className="p-2 border rounded-md w-full"
+            />
+            {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+          </div>
 
-              if (value.length <= 3) {
-                value = value;
-              } else if (value.length <= 6) {
-                value = value.replace(/(\d{3})(\d{0,3})/, '$1.$2');
-              } else if (value.length <= 9) {
-                value = value.replace(/(\d{3})(\d{3})(\d{0,3})/, '$1.$2.$3');
-              } else {
-                value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, '$1.$2.$3-$4');
-              }
+          {/* CPF */}
+          <div>
+            <input
+              type="text"
+              name="cpf"
+              placeholder="CPF"
+              value={form.cpf || ""}
+              onChange={(e) => {
+                let value = e.target.value.replace(/\D/g, '').slice(0, 11);
 
-              handleChange({ target: { name: "cpf", value } });
-            }}
-            className="p-2 border rounded-md w-full"
-          />
-          <select
-            name="healthInsurance"
-            value={form.healthInsurance || ""}
-            onChange={handleChange}
-            className="p-2 border rounded-md w-full"
-          >
-            <option value="">Selecione o Convênio</option>
-            <option value="plano 1">Plano 1</option>
-            <option value="plano 2">Plano 2</option>
-            <option value="plano 3">Plano 3</option>
-          </select>
-          <input
-            type="date"
-            name="birthDate"
-            value={form.birthDate || ""}
-            onChange={handleChange}
-            className="p-2 border rounded-md w-full"
-          />
+                if (value.length <= 3) {
+                  value = value;
+                } else if (value.length <= 6) {
+                  value = value.replace(/(\d{3})(\d{0,3})/, '$1.$2');
+                } else if (value.length <= 9) {
+                  value = value.replace(/(\d{3})(\d{3})(\d{0,3})/, '$1.$2.$3');
+                } else {
+                  value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, '$1.$2.$3-$4');
+                }
+
+                handleChange({ target: { name: "cpf", value } } as any);
+              }}
+              className="p-2 border rounded-md w-full"
+            />
+            {errors.cpf && <p className="text-red-500 text-sm mt-1">{errors.cpf}</p>}
+          </div>
+
+          {/* Convênio */}
+          <div>
+            <select
+              name="healthInsurance"
+              value={form.healthInsurance || ""}
+              onChange={handleChange}
+              className="p-2 border rounded-md w-full"
+            >
+              <option value="">Selecione o Convênio</option>
+              <option value="plano 1">Plano 1</option>
+              <option value="plano 2">Plano 2</option>
+              <option value="plano 3">Plano 3</option>
+            </select>
+            {errors.healthInsurance && <p className="text-red-500 text-sm mt-1">{errors.healthInsurance}</p>}
+          </div>
+
+          {/* Data de nascimento */}
+          <div>
+            <input
+              type="date"
+              name="birthDate"
+              value={form.birthDate || ""}
+              onChange={handleChange}
+              className="p-2 border rounded-md w-full"
+            />
+            {errors.birthDate && <p className="text-red-500 text-sm mt-1">{errors.birthDate}</p>}
+          </div>
         </div>
+
         <div className="flex justify-end gap-4">
           {editId && (
             <button
               onClick={() => {
                 setEditId(null);
                 setForm({});
+                setErrors({});
               }}
               className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
             >
@@ -140,6 +198,7 @@ export default function PatientsPage() {
         </div>
       </div>
 
+      {/* Lista de pacientes */}
       <table className="w-full border shadow rounded-xl overflow-hidden">
         <thead className="bg-gray-100 text-left">
           <tr>

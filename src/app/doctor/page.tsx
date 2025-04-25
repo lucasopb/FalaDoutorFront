@@ -13,6 +13,7 @@ export default function HomePage() {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [form, setForm] = useState<Partial<Doctor>>({});
   const [editId, setEditId] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const loadDoctors = async () => {
     const data = await getDoctors();
@@ -28,21 +29,55 @@ export default function HomePage() {
       ...prev,
       [e.target.name]: e.target.value,
     }));
+
+    setErrors((prev) => ({
+      ...prev,
+      [e.target.name]: "",
+    }));
+  };
+
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!form.name || form.name.trim() === "") {
+      newErrors.name = "Nome é obrigatório.";
+    }
+
+    const cpfClean = (form.cpf || "").replace(/\D/g, "");
+    if (!cpfClean || cpfClean.length < 11) {
+      newErrors.cpf = "CPF deve conter 11 caracteres.";
+    }
+
+    const crm = form.crm || "";
+    if (!crm || crm.length < 6) {
+      newErrors.crm = "CRM deve conter 6 caracteres.";
+    }
+
+    if (!form.birthDate) {
+      newErrors.birthDate = "Data de nascimento é obrigatória.";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
+    if (!validate()) return;
+
     const preparedForm = {
       ...form,
       birthDate: form.birthDate ? new Date(form.birthDate).toISOString() : undefined,
     };
 
     if (editId) {
-      await updateDoctor(editId, preparedForm as unknown as Doctor);
+      await updateDoctor(editId, preparedForm as Doctor);
     } else {
-      await createDoctor(preparedForm as unknown as Doctor);
+      await createDoctor(preparedForm as Doctor);
     }
+
     setForm({});
     setEditId(null);
+    setErrors({});
     loadDoctors();
   };
 
@@ -52,8 +87,9 @@ export default function HomePage() {
       name: doctor.name,
       cpf: doctor.cpf,
       crm: doctor.crm,
-      birthDate: doctor.birthDate?.split("T")[0], // para input type="date"
+      birthDate: doctor.birthDate?.split("T")[0],
     });
+    setErrors({});
   };
 
   const handleDelete = async (id: string) => {
@@ -68,61 +104,76 @@ export default function HomePage() {
       <div className="mb-8 bg-white p-4 rounded-xl shadow border">
         <h2 className="text-xl font-semibold mb-4">{editId ? "Editar Médico" : "Novo Médico"}</h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-          <input
-            type="text"
-            name="name"
-            placeholder="Nome"
-            value={form.name || ""}
-            onChange={handleChange}
-            className="p-2 border rounded-md w-full"
-          />
-          <input
-            type="text"
-            name="cpf"
-            placeholder="CPF"
-            value={form.cpf || ""}
-            onChange={(e) => {
-              let value = e.target.value.replace(/\D/g, '').slice(0, 11);
+          <div>
+            <input
+              type="text"
+              name="name"
+              placeholder="Nome"
+              value={form.name || ""}
+              onChange={handleChange}
+              className="p-2 border rounded-md w-full"
+            />
+            {errors.name && <p className="text-sm text-red-500 mt-1">{errors.name}</p>}
+          </div>
 
-              if (value.length <= 3) {
-                value = value;
-              } else if (value.length <= 6) {
-                value = value.replace(/(\d{3})(\d{0,3})/, '$1.$2');
-              } else if (value.length <= 9) {
-                value = value.replace(/(\d{3})(\d{3})(\d{0,3})/, '$1.$2.$3');
-              } else {
-                value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, '$1.$2.$3-$4');
-              }
+          <div>
+            <input
+              type="text"
+              name="cpf"
+              placeholder="CPF"
+              value={form.cpf || ""}
+              onChange={(e) => {
+                let value = e.target.value.replace(/\D/g, '').slice(0, 11);
+                if (value.length <= 3) {
+                  value = value;
+                } else if (value.length <= 6) {
+                  value = value.replace(/(\d{3})(\d{0,3})/, '$1.$2');
+                } else if (value.length <= 9) {
+                  value = value.replace(/(\d{3})(\d{3})(\d{0,3})/, '$1.$2.$3');
+                } else {
+                  value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, '$1.$2.$3-$4');
+                }
+                handleChange({ target: { name: "cpf", value } });
+              }}
+              className="p-2 border rounded-md w-full"
+            />
+            {errors.cpf && <p className="text-sm text-red-500 mt-1">{errors.cpf}</p>}
+          </div>
 
-              handleChange({ target: { name: "cpf", value } });
-            }}
-            className="p-2 border rounded-md w-full"
-          />
-          <input
-            type="text"
-            name="crm"
-            placeholder="CRM"
-            value={form.crm || ""}
-            onChange={(e) => {
-              const value = e.target.value.replace(/\D/g, '').slice(0, 6); // permite apenas números e limita a 6 caracteres
-              handleChange({ target: { name: "crm", value } });
-            }}
-            className="p-2 border rounded-md w-full"
-          />
-          <input
-            type="date"
-            name="birthDate"
-            value={form.birthDate || ""}
-            onChange={handleChange}
-            className="p-2 border rounded-md w-full"
-          />
+          <div>
+            <input
+              type="text"
+              name="crm"
+              placeholder="CRM"
+              value={form.crm || ""}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                handleChange({ target: { name: "crm", value } });
+              }}
+              className="p-2 border rounded-md w-full"
+            />
+            {errors.crm && <p className="text-sm text-red-500 mt-1">{errors.crm}</p>}
+          </div>
+
+          <div>
+            <input
+              type="date"
+              name="birthDate"
+              value={form.birthDate || ""}
+              onChange={handleChange}
+              className="p-2 border rounded-md w-full"
+            />
+            {errors.birthDate && <p className="text-sm text-red-500 mt-1">{errors.birthDate}</p>}
+          </div>
         </div>
+
         <div className="flex justify-end gap-4">
           {editId && (
             <button
               onClick={() => {
                 setEditId(null);
                 setForm({});
+                setErrors({});
               }}
               className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
             >
