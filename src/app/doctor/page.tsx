@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Doctor } from "@/types";
+import { Doctor } from "@/types/doctor";
 import {
   getDoctors,
   createDoctor,
@@ -17,8 +17,8 @@ export default function HomePage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const loadData = async () => {
-    const doctorsData = await getDoctors();
-    setDoctors(doctorsData);
+    const data = await getDoctors();
+    setDoctors(data);
   };
 
   useEffect(() => {
@@ -117,7 +117,7 @@ export default function HomePage() {
           <h2 className="text-2xl font-semibold mb-6 text-gray-800">
             {editId ? "Editar Médico" : "Cadastrar Novo Médico"}
           </h2>
-          
+
           <div className="flex flex-wrap">
             <div className="flex flex-col w-full md:w-1/4 p-2 group">
               <label className="block text-sm font-medium text-gray-600 mb-2 group-hover:text-gray-800 transition-colors">
@@ -212,7 +212,7 @@ export default function HomePage() {
             </button>
           </div>
         </div>
-        
+
         <div className="table-container animate-fade-in bg-white rounded-2xl shadow-xl border border-blue-100 overflow-hidden">
           <table className="w-full">
             <thead>

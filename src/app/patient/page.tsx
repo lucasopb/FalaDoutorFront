@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Patient } from "@/types";
+import { Patient } from "@/types/patient";
 import {
   getPatients,
   createPatient,
@@ -25,7 +25,7 @@ export default function HomePage() {
     loadPatients();
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,

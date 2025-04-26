@@ -1,15 +1,16 @@
 import axios from "axios";
-import { Doctor, Patient } from "@/types";
+import { Doctor } from "@/types/doctor";
+import { Patient } from "@/types/patient"
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
 });
 
 // ---------------- MÉDICOS ----------------
 
 // MÉDICOS
 
-export const getDoctors = async (): Promise<Patient[]> => {
+export const getDoctors = async (): Promise<Doctor[]> => {
   try {
     const res = await api.get("/doctor");
     return res.data;
