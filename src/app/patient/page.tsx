@@ -8,12 +8,13 @@ import {
   updatePatient,
   deletePatient,
 } from "@/lib/api";
+import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
-export default function PatientsPage() {
+export default function HomePage() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [form, setForm] = useState<Partial<Patient>>({});
-  const [errors, setErrors] = useState<Record<string, string>>({});
   const [editId, setEditId] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const loadPatients = async () => {
     const data = await getPatients();
@@ -24,64 +25,64 @@ export default function PatientsPage() {
     loadPatients();
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
     }));
 
-    // limpa erro do campo conforme digita
     setErrors((prev) => ({
       ...prev,
       [e.target.name]: "",
     }));
   };
 
-  const validateForm = () => {
+  const validate = () => {
     const newErrors: Record<string, string> = {};
 
     if (!form.name || form.name.trim() === "") {
       newErrors.name = "Nome é obrigatório.";
     }
 
-    const cpf = form.cpf?.replace(/\D/g, "");
-    if (!cpf || cpf.length < 11) {
-      newErrors.cpf = "CPF deve ter 11 dígitos.";
-    }
-
-    if (!form.healthInsurance) {
-      newErrors.healthInsurance = "Selecione um plano de saúde.";
+    const cpfClean = (form.cpf || "").replace(/\D/g, "");
+    if (!cpfClean || cpfClean.length < 11) {
+      newErrors.cpf = "CPF é obrigatorio.";
     }
 
     if (!form.birthDate) {
       newErrors.birthDate = "Data de nascimento é obrigatória.";
     }
 
-    setErrors(newErrors);
+    if (!form.healthInsurance) {
+      newErrors.healthInsurance = "Convênio é obrigatório.";
+    }
 
+    setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
-    if (!validateForm()) return;
+    if (!validate()) return;
 
     const preparedForm = {
       ...form,
-      birthDate: form.birthDate
-        ? new Date(form.birthDate).toISOString()
-        : undefined,
+      birthDate: form.birthDate,
     };
 
-    if (editId) {
-      await updatePatient(editId, preparedForm as Patient);
-    } else {
-      await createPatient(preparedForm as Patient);
-    }
+    try {
+      if (editId) {
+        await updatePatient(editId, preparedForm as Patient);
+      } else {
+        await createPatient(preparedForm as Patient);
+      }
 
-    setForm({});
-    setErrors({});
-    setEditId(null);
-    loadPatients();
+      setForm({});
+      setEditId(null);
+      setErrors({});
+      loadPatients();
+    } catch (error) {
+      console.error("Erro ao salvar paciente:", error);
+    }
   };
 
   const handleEdit = (patient: Patient) => {
@@ -89,153 +90,183 @@ export default function PatientsPage() {
     setForm({
       name: patient.name,
       cpf: patient.cpf,
+      birthDate: patient.birthDate,
       healthInsurance: patient.healthInsurance,
-      birthDate: patient.birthDate?.toString().split("T")[0],
     });
     setErrors({});
   };
 
   const handleDelete = async (id: string) => {
-    await deletePatient(id);
-    loadPatients();
+    try {
+      await deletePatient(id);
+      loadPatients();
+    } catch (error) {
+      console.error("Erro ao deletar paciente:", error);
+    }
   };
 
   return (
-    <main className="p-6 max-w-5xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">Gestão de Pacientes</h1>
-
-      <div className="mb-8 bg-white p-4 rounded-xl shadow border">
-        <h2 className="text-xl font-semibold mb-4">{editId ? "Editar Paciente" : "Novo Paciente"}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-          {/* Nome */}
-          <div>
-            <input
-              type="text"
-              name="name"
-              placeholder="Nome"
-              value={form.name || ""}
-              onChange={handleChange}
-              className="p-2 border rounded-md w-full"
-            />
-            {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
-          </div>
-
-          {/* CPF */}
-          <div>
-            <input
-              type="text"
-              name="cpf"
-              placeholder="CPF"
-              value={form.cpf || ""}
-              onChange={(e) => {
-                let value = e.target.value.replace(/\D/g, '').slice(0, 11);
-
-                if (value.length <= 3) {
-                  value = value;
-                } else if (value.length <= 6) {
-                  value = value.replace(/(\d{3})(\d{0,3})/, '$1.$2');
-                } else if (value.length <= 9) {
-                  value = value.replace(/(\d{3})(\d{3})(\d{0,3})/, '$1.$2.$3');
-                } else {
-                  value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, '$1.$2.$3-$4');
-                }
-
-                handleChange({ target: { name: "cpf", value } } as any);
-              }}
-              className="p-2 border rounded-md w-full"
-            />
-            {errors.cpf && <p className="text-red-500 text-sm mt-1">{errors.cpf}</p>}
-          </div>
-
-          {/* Convênio */}
-          <div>
-            <select
-              name="healthInsurance"
-              value={form.healthInsurance || ""}
-              onChange={handleChange}
-              className="p-2 border rounded-md w-full"
-            >
-              <option value="">Selecione o Convênio</option>
-              <option value="plano 1">Plano 1</option>
-              <option value="plano 2">Plano 2</option>
-              <option value="plano 3">Plano 3</option>
-            </select>
-            {errors.healthInsurance && <p className="text-red-500 text-sm mt-1">{errors.healthInsurance}</p>}
-          </div>
-
-          {/* Data de nascimento */}
-          <div>
-            <input
-              type="date"
-              name="birthDate"
-              value={form.birthDate || ""}
-              onChange={handleChange}
-              className="p-2 border rounded-md w-full"
-            />
-            {errors.birthDate && <p className="text-red-500 text-sm mt-1">{errors.birthDate}</p>}
+    <main className="min-h-screen p-8 bg-gradient-to-br from-indigo-50 to-purple-50">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
+            Gestão de Pacientes
+          </h1>
+          <div className="flex items-center gap-4">
+            <span className="text-lg text-gray-600">
+              Total de pacientes: {patients.length}
+            </span>
           </div>
         </div>
 
-        <div className="flex justify-end gap-4">
-          {editId && (
+        <div className="card mb-8 animate-fade-in bg-white rounded-2xl p-8 shadow-xl border border-indigo-100">
+          <h2 className="text-2xl font-semibold mb-6 text-gray-800">
+            {editId ? "Editar Paciente" : "Cadastrar Novo Paciente"}
+          </h2>
+
+          <div className="flex flex-wrap">
+            <div className="flex flex-col w-full md:w-1/4 group">
+              <label className="block text-sm font-medium text-gray-600 mb-2 group-hover:text-gray-800 transition-colors">
+                Nome
+              </label>
+              <input
+                type="text"
+                name="name"
+                placeholder="Digite o nome do paciente"
+                value={form.name || ""}
+                onChange={handleChange}
+                className="input-field w-70 group-hover:border-indigo-300 transition-colors"
+              />
+              {errors.name && <p className="text-sm text-red-500 mt-1">{errors.name}</p>}
+            </div>
+
+            <div className="flex flex-col w-full md:w-1/4 group">
+              <label className="block text-sm font-medium text-gray-600 mb-2 group-hover:text-gray-800 transition-colors">
+                CPF
+              </label>
+              <input
+                type="text"
+                name="cpf"
+                placeholder="000.000.000-00"
+                value={form.cpf || ""}
+                onChange={(e) => {
+                  let value = e.target.value.replace(/\D/g, '').slice(0, 11);
+                  if (value.length <= 3) {
+                    value = value;
+                  } else if (value.length <= 6) {
+                    value = value.replace(/(\d{3})(\d{0,3})/, '$1.$2');
+                  } else if (value.length <= 9) {
+                    value = value.replace(/(\d{3})(\d{3})(\d{0,3})/, '$1.$2.$3');
+                  } else {
+                    value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, '$1.$2.$3-$4');
+                  }
+                  handleChange({ target: { name: "cpf", value } } as any);
+                }}
+                className="input-field w-70 group-hover:border-indigo-300 transition-colors"
+              />
+              {errors.cpf && <p className="text-sm text-red-500 mt-1">{errors.cpf}</p>}
+            </div>
+
+            <div className="flex flex-col w-full md:w-1/4 group">
+              <label className="block text-sm font-medium text-gray-600 mb-2 group-hover:text-gray-800 transition-colors">
+                Convênio
+              </label>
+              <select
+                name="healthInsurance"
+                value={form.healthInsurance || ""}
+                onChange={handleChange}
+                className="input-field w-70 group-hover:border-indigo-300 transition-colors"
+              >
+                <option value="">Selecione o Convênio</option>
+                <option value="plano 1">Plano 1</option>
+                <option value="plano 2">Plano 2</option>
+                <option value="plano 3">Plano 3</option>
+              </select>
+              {errors.healthInsurance && <p className="text-sm text-red-500 mt-1">{errors.healthInsurance}</p>}
+            </div>
+
+            <div className="flex flex-col w-full md:w-1/4 group">
+              <label className="block text-sm font-medium text-gray-600 mb-2 group-hover:text-gray-800 transition-colors">
+                Data de Nascimento
+              </label>
+              <input
+                type="date"
+                name="birthDate"
+                value={form.birthDate ? new Date(form.birthDate).toISOString().split('T')[0] : ""}
+                onChange={handleChange}
+                className="input-field w-70 group-hover:border-indigo-300 transition-colors"
+              />
+              {errors.birthDate && <p className="text-sm text-red-500 mt-1">{errors.birthDate}</p>}
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-4 mt-6">
+            {editId && (
+              <button
+                onClick={() => {
+                  setEditId(null);
+                  setForm({});
+                  setErrors({});
+                }}
+                className="btn-secondary hover:bg-gray-100 transition-colors"
+              >
+                Cancelar
+              </button>
+            )}
             <button
-              onClick={() => {
-                setEditId(null);
-                setForm({});
-                setErrors({});
-              }}
-              className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+              onClick={handleSubmit}
+              className="btn-primary hover:scale-105 transition-transform"
             >
-              Cancelar
+              {editId ? "Atualizar" : "Cadastrar"}
             </button>
-          )}
-          <button
-            onClick={handleSubmit}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            {editId ? "Atualizar" : "Cadastrar"}
-          </button>
+          </div>
         </div>
-      </div>
 
-      {/* Lista de pacientes */}
-      <table className="w-full border shadow rounded-xl overflow-hidden">
-        <thead className="bg-gray-100 text-left">
-          <tr>
-            <th className="p-3 border">Nome</th>
-            <th className="p-3 border">CPF</th>
-            <th className="p-3 border">Convênio</th>
-            <th className="p-3 border">Nascimento</th>
-            <th className="p-3 border text-center">Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          {patients.map((patient) => (
-            <tr key={patient.id} className="border-t">
-              <td className="p-3 border">{patient.name}</td>
-              <td className="p-3 border">{patient.cpf}</td>
-              <td className="p-3 border">{patient.healthInsurance}</td>
-              <td className="p-3 border">
-                {new Date(patient.birthDate).toLocaleDateString("pt-BR")}
-              </td>
-              <td className="p-3 border text-center">
-                <button
-                  onClick={() => handleEdit(patient)}
-                  className="text-blue-600 hover:underline mr-4"
-                >
-                  Editar
-                </button>
-                <button
-                  onClick={() => handleDelete(patient.id)}
-                  className="text-red-600 hover:underline"
-                >
-                  Deletar
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+        <div className="table-container animate-fade-in bg-white rounded-2xl shadow-xl border border-indigo-100 overflow-hidden">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gradient-to-r from-indigo-50 to-purple-50">
+                <th className="table-cell text-center">Nome</th>
+                <th className="table-cell text-center">CPF</th>
+                <th className="table-cell text-center">Nascimento</th>
+                <th className="table-cell text-center">Convênio</th>
+                <th className="table-cell text-center">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {patients.map((patient) => (
+                <tr key={patient.id} className="hover:bg-indigo-50/50 transition-colors">
+                  <td className="table-cell text-center">{patient.name}</td>
+                  <td className="table-cell text-center">{patient.cpf}</td>
+                  <td className="table-cell text-center">
+                    {new Date(patient.birthDate).toLocaleDateString("pt-BR")}
+                  </td>
+                  <td className="table-cell text-center">{patient.healthInsurance}</td>
+                  <td className="table-cell text-center">
+                    <div className="flex justify-center gap-3">
+                      <button
+                        onClick={() => handleEdit(patient)}
+                        className="action-icon edit-icon hover:scale-110 transition-transform"
+                        title="Editar"
+                      >
+                        <PencilIcon className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(patient.id)}
+                        className="action-icon delete-icon hover:scale-110 transition-transform"
+                        title="Deletar"
+                      >
+                        <TrashIcon className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
     </main>
   );
 }

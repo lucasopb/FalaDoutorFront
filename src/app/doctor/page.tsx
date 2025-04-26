@@ -8,6 +8,7 @@ import {
   updateDoctor,
   deleteDoctor,
 } from "@/lib/api";
+import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 export default function HomePage() {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
@@ -15,13 +16,13 @@ export default function HomePage() {
   const [editId, setEditId] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const loadDoctors = async () => {
-    const data = await getDoctors();
-    setDoctors(data);
+  const loadData = async () => {
+    const doctorsData = await getDoctors();
+    setDoctors(doctorsData);
   };
 
   useEffect(() => {
-    loadDoctors();
+    loadData();
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,18 +40,16 @@ export default function HomePage() {
   const validate = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!form.name || form.name.trim() === "") {
+    if (!form.name) {
       newErrors.name = "Nome é obrigatório.";
     }
 
-    const cpfClean = (form.cpf || "").replace(/\D/g, "");
-    if (!cpfClean || cpfClean.length < 11) {
-      newErrors.cpf = "CPF deve conter 11 caracteres.";
+    if (!form.cpf) {
+      newErrors.cpf = "CPF é obrigatório.";
     }
 
-    const crm = form.crm || "";
-    if (!crm || crm.length < 6) {
-      newErrors.crm = "CRM deve conter 6 caracteres.";
+    if (!form.crm) {
+      newErrors.crm = "CRM é obrigatório.";
     }
 
     if (!form.birthDate) {
@@ -64,21 +63,20 @@ export default function HomePage() {
   const handleSubmit = async () => {
     if (!validate()) return;
 
-    const preparedForm = {
-      ...form,
-      birthDate: form.birthDate ? new Date(form.birthDate).toISOString() : undefined,
-    };
+    try {
+      if (editId) {
+        await updateDoctor(editId, form as Doctor);
+      } else {
+        await createDoctor(form as Doctor);
+      }
 
-    if (editId) {
-      await updateDoctor(editId, preparedForm as Doctor);
-    } else {
-      await createDoctor(preparedForm as Doctor);
+      setForm({});
+      setEditId(null);
+      setErrors({});
+      loadData();
+    } catch (error) {
+      console.error("Erro ao salvar médico:", error);
     }
-
-    setForm({});
-    setEditId(null);
-    setErrors({});
-    loadDoctors();
   };
 
   const handleEdit = (doctor: Doctor) => {
@@ -87,145 +85,178 @@ export default function HomePage() {
       name: doctor.name,
       cpf: doctor.cpf,
       crm: doctor.crm,
-      birthDate: doctor.birthDate?.split("T")[0],
+      birthDate: doctor.birthDate,
     });
     setErrors({});
   };
 
   const handleDelete = async (id: string) => {
-    await deleteDoctor(id);
-    loadDoctors();
+    try {
+      await deleteDoctor(id);
+      loadData();
+    } catch (error) {
+      console.error("Erro ao deletar médico:", error);
+    }
   };
 
   return (
-    <main className="p-6 max-w-5xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">Gestão de Médicos</h1>
-
-      <div className="mb-8 bg-white p-4 rounded-xl shadow border">
-        <h2 className="text-xl font-semibold mb-4">{editId ? "Editar Médico" : "Novo Médico"}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-          <div>
-            <input
-              type="text"
-              name="name"
-              placeholder="Nome"
-              value={form.name || ""}
-              onChange={handleChange}
-              className="p-2 border rounded-md w-full"
-            />
-            {errors.name && <p className="text-sm text-red-500 mt-1">{errors.name}</p>}
-          </div>
-
-          <div>
-            <input
-              type="text"
-              name="cpf"
-              placeholder="CPF"
-              value={form.cpf || ""}
-              onChange={(e) => {
-                let value = e.target.value.replace(/\D/g, '').slice(0, 11);
-                if (value.length <= 3) {
-                  value = value;
-                } else if (value.length <= 6) {
-                  value = value.replace(/(\d{3})(\d{0,3})/, '$1.$2');
-                } else if (value.length <= 9) {
-                  value = value.replace(/(\d{3})(\d{3})(\d{0,3})/, '$1.$2.$3');
-                } else {
-                  value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, '$1.$2.$3-$4');
-                }
-                handleChange({ target: { name: "cpf", value } });
-              }}
-              className="p-2 border rounded-md w-full"
-            />
-            {errors.cpf && <p className="text-sm text-red-500 mt-1">{errors.cpf}</p>}
-          </div>
-
-          <div>
-            <input
-              type="text"
-              name="crm"
-              placeholder="CRM"
-              value={form.crm || ""}
-              onChange={(e) => {
-                const value = e.target.value.replace(/\D/g, '').slice(0, 6);
-                handleChange({ target: { name: "crm", value } });
-              }}
-              className="p-2 border rounded-md w-full"
-            />
-            {errors.crm && <p className="text-sm text-red-500 mt-1">{errors.crm}</p>}
-          </div>
-
-          <div>
-            <input
-              type="date"
-              name="birthDate"
-              value={form.birthDate || ""}
-              onChange={handleChange}
-              className="p-2 border rounded-md w-full"
-            />
-            {errors.birthDate && <p className="text-sm text-red-500 mt-1">{errors.birthDate}</p>}
+    <main className="min-h-screen p-8 bg-gradient-to-br from-blue-50 to-indigo-50">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+            Gestão de Médicos
+          </h1>
+          <div className="flex items-center gap-4">
+            <span className="text-lg text-gray-600">
+              Total de médicos: {doctors.length}
+            </span>
           </div>
         </div>
 
-        <div className="flex justify-end gap-4">
-          {editId && (
+        <div className="card mb-8 animate-fade-in bg-white rounded-2xl p-8 shadow-xl border border-blue-100">
+          <h2 className="text-2xl font-semibold mb-6 text-gray-800">
+            {editId ? "Editar Médico" : "Cadastrar Novo Médico"}
+          </h2>
+          
+          <div className="flex flex-wrap">
+            <div className="flex flex-col w-full md:w-1/4 p-2 group">
+              <label className="block text-sm font-medium text-gray-600 mb-2 group-hover:text-gray-800 transition-colors">
+                Nome
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={form.name || ""}
+                onChange={handleChange}
+                className="input-field w-70 group-hover:border-blue-300 transition-colors"
+                placeholder="Nome completo"
+              />
+              {errors.name && <p className="text-sm text-red-500 mt-1">{errors.name}</p>}
+            </div>
+
+            <div className="flex flex-col w-full md:w-1/4 p-2 group">
+              <label className="block text-sm font-medium text-gray-600 mb-2 group-hover:text-gray-800 transition-colors">
+                CPF
+              </label>
+              <input
+                type="text"
+                name="cpf"
+                value={form.cpf || ""}
+                onChange={(e) => {
+                  let value = e.target.value.replace(/\D/g, '').slice(0, 11);
+                  if (value.length <= 3) {
+                    value = value;
+                  } else if (value.length <= 6) {
+                    value = value.replace(/(\d{3})(\d{0,3})/, '$1.$2');
+                  } else if (value.length <= 9) {
+                    value = value.replace(/(\d{3})(\d{3})(\d{0,3})/, '$1.$2.$3');
+                  } else {
+                    value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, '$1.$2.$3-$4');
+                  }
+                  handleChange({ target: { name: "cpf", value } } as any);
+                }}
+                className="input-field w-70 group-hover:border-indigo-300 transition-colors"
+                placeholder="000.000.000-00"
+              />
+              {errors.cpf && <p className="text-sm text-red-500 mt-1">{errors.cpf}</p>}
+            </div>
+
+            <div className="flex flex-col w-full md:w-1/4 p-2 group">
+              <label className="block text-sm font-medium text-gray-600 mb-2 group-hover:text-gray-800 transition-colors">
+                CRM
+              </label>
+              <input
+                type="text"
+                name="crm"
+                value={form.crm || ""}
+                onChange={handleChange}
+                className="input-field w-70 group-hover:border-blue-300 transition-colors"
+                placeholder="Número do CRM"
+              />
+              {errors.crm && <p className="text-sm text-red-500 mt-1">{errors.crm}</p>}
+            </div>
+
+            <div className="flex flex-col w-full md:w-1/4 p-2 group">
+              <label className="block text-sm font-medium text-gray-600 mb-2 group-hover:text-gray-800 transition-colors">
+                Data de Nascimento
+              </label>
+              <input
+                type="date"
+                name="birthDate"
+                value={form.birthDate ? new Date(form.birthDate).toISOString().split('T')[0] : ""}
+                onChange={handleChange}
+                className="input-field w-70 group-hover:border-blue-300 transition-colors"
+              />
+              {errors.birthDate && <p className="text-sm text-red-500 mt-1">{errors.birthDate}</p>}
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-4 mt-6">
+            {editId && (
+              <button
+                onClick={() => {
+                  setEditId(null);
+                  setForm({});
+                  setErrors({});
+                }}
+                className="btn-secondary hover:bg-gray-100 transition-colors"
+              >
+                Cancelar
+              </button>
+            )}
             <button
-              onClick={() => {
-                setEditId(null);
-                setForm({});
-                setErrors({});
-              }}
-              className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+              onClick={handleSubmit}
+              className="btn-primary hover:scale-105 transition-transform"
             >
-              Cancelar
+              {editId ? "Atualizar" : "Cadastrar"}
             </button>
-          )}
-          <button
-            onClick={handleSubmit}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            {editId ? "Atualizar" : "Cadastrar"}
-          </button>
+          </div>
+        </div>
+        
+        <div className="table-container animate-fade-in bg-white rounded-2xl shadow-xl border border-blue-100 overflow-hidden">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gradient-to-r from-blue-50 to-indigo-50">
+                <th className="table-cell">Nome</th>
+                <th className="table-cell">CPF</th>
+                <th className="table-cell">CRM</th>
+                <th className="table-cell">Nascimento</th>
+                <th className="table-cell text-center">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {doctors.map((doctor) => (
+                <tr key={doctor.id} className="hover:bg-blue-50/50 transition-colors">
+                  <td className="table-cell text-center">{doctor.name}</td>
+                  <td className="table-cell text-center">{doctor.cpf}</td>
+                  <td className="table-cell text-center">{doctor.crm}</td>
+                  <td className="table-cell text-center">
+                    {new Date(doctor.birthDate).toLocaleDateString("pt-BR")}
+                  </td>
+                  <td className="table-cell text-center">
+                    <div className="flex justify-center gap-3">
+                      <button
+                        onClick={() => handleEdit(doctor)}
+                        className="action-icon edit-icon hover:scale-110 transition-transform"
+                        title="Editar"
+                      >
+                        <PencilIcon className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(doctor.id)}
+                        className="action-icon delete-icon hover:scale-110 transition-transform"
+                        title="Deletar"
+                      >
+                        <TrashIcon className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
-
-      <table className="w-full border shadow rounded-xl overflow-hidden">
-        <thead className="bg-gray-100 text-left">
-          <tr>
-            <th className="p-3 border">Nome</th>
-            <th className="p-3 border">CPF</th>
-            <th className="p-3 border">CRM</th>
-            <th className="p-3 border">Nascimento</th>
-            <th className="p-3 border text-center">Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          {doctors.map((doc) => (
-            <tr key={doc.id} className="border-t">
-              <td className="p-3 border">{doc.name}</td>
-              <td className="p-3 border">{doc.cpf}</td>
-              <td className="p-3 border">{doc.crm}</td>
-              <td className="p-3 border">
-                {new Date(doc.birthDate).toLocaleDateString("pt-BR")}
-              </td>
-              <td className="p-3 border text-center">
-                <button
-                  onClick={() => handleEdit(doc)}
-                  className="text-blue-600 hover:underline mr-4"
-                >
-                  Editar
-                </button>
-                <button
-                  onClick={() => handleDelete(doc.id)}
-                  className="text-red-600 hover:underline"
-                >
-                  Deletar
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
     </main>
   );
 }
