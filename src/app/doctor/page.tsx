@@ -44,12 +44,13 @@ export default function HomePage() {
       newErrors.name = "Nome é obrigatório.";
     }
 
-    if (!form.cpf) {
-      newErrors.cpf = "CPF é obrigatório.";
+    const cpfClean = (form.cpf || "").replace(/\D/g, "");
+    if (!cpfClean || cpfClean.length < 11) {
+      newErrors.cpf = "CPF é obrigatorio.(000.000.000-00)";
     }
 
-    if (!form.crm) {
-      newErrors.crm = "CRM é obrigatório.";
+    if (!form.crm || form.crm.length < 6) {
+      newErrors.crm = "CRM é obrigatório.(000000)";
     }
 
     if (!form.birthDate) {
@@ -129,7 +130,7 @@ export default function HomePage() {
                 value={form.name || ""}
                 onChange={handleChange}
                 className="input-field w-70 group-hover:border-blue-300 transition-colors"
-                placeholder="Nome completo"
+                placeholder="Digite o nome do médico"
               />
               {errors.name && <p className="text-sm text-red-500 mt-1">{errors.name}</p>}
             </div>
@@ -169,7 +170,10 @@ export default function HomePage() {
                 type="text"
                 name="crm"
                 value={form.crm || ""}
-                onChange={handleChange}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                  handleChange({ target: { name: "crm", value } } as any);
+                }}
                 className="input-field w-70 group-hover:border-blue-300 transition-colors"
                 placeholder="Número do CRM"
               />

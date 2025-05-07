@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { Patient } from "@/types/patient";
+import { HealthInsurance } from "@/types/healthInsurance";
 import {
   getPatients,
   createPatient,
   updatePatient,
   deletePatient,
+  getHealthInsurance
 } from "@/lib/api";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
@@ -15,6 +17,8 @@ export default function HomePage() {
   const [form, setForm] = useState<Partial<Patient>>({});
   const [editId, setEditId] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [healthInsurances, setHealthInsurances] = useState<HealthInsurance[]>([]);
+
 
   const loadPatients = async () => {
     const data = await getPatients();
@@ -23,7 +27,13 @@ export default function HomePage() {
 
   useEffect(() => {
     loadPatients();
+    loadHealthInsurances();
   }, []);
+  
+  const loadHealthInsurances = async () => {
+    const data = await getHealthInsurance();
+    setHealthInsurances(data);
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm((prev) => ({
@@ -46,15 +56,11 @@ export default function HomePage() {
 
     const cpfClean = (form.cpf || "").replace(/\D/g, "");
     if (!cpfClean || cpfClean.length < 11) {
-      newErrors.cpf = "CPF é obrigatorio.";
+      newErrors.cpf = "CPF é obrigatorio. (000.000.000-00)";
     }
 
     if (!form.birthDate) {
       newErrors.birthDate = "Data de nascimento é obrigatória.";
-    }
-
-    if (!form.healthInsurance) {
-      newErrors.healthInsurance = "Convênio é obrigatório.";
     }
 
     setErrors(newErrors);
@@ -67,7 +73,9 @@ export default function HomePage() {
     const preparedForm = {
       ...form,
       birthDate: form.birthDate,
+      healthInsuranceId: form.healthInsurance || null,
     };
+    console.log(preparedForm)
 
     try {
       if (editId) {
@@ -91,7 +99,7 @@ export default function HomePage() {
       name: patient.name,
       cpf: patient.cpf,
       birthDate: patient.birthDate,
-      healthInsurance: patient.healthInsurance,
+      healthInsurance: patient.healthInsurance || null,
     });
     setErrors({});
   };
@@ -173,15 +181,18 @@ export default function HomePage() {
               </label>
               <select
                 name="healthInsurance"
-                value={form.healthInsurance || ""}
+                value={form.healthInsurance ? form.healthInsurance.id : ""}
                 onChange={handleChange}
                 className="input-field w-70 group-hover:border-indigo-300 transition-colors"
               >
-                <option value="">Selecione o Convênio</option>
-                <option value="plano 1">Plano 1</option>
-                <option value="plano 2">Plano 2</option>
-                <option value="plano 3">Plano 3</option>
+                <option value="">Sem Convênio</option>
+                {healthInsurances.map((hi) => (
+                  <option key={hi.id} value={hi.id}>
+                    {hi.name}
+                  </option>
+                ))}
               </select>
+
               {errors.healthInsurance && <p className="text-sm text-red-500 mt-1">{errors.healthInsurance}</p>}
             </div>
 
@@ -241,7 +252,9 @@ export default function HomePage() {
                   <td className="table-cell text-center">
                     {new Date(patient.birthDate).toLocaleDateString("pt-BR")}
                   </td>
-                  <td className="table-cell text-center">{patient.healthInsurance}</td>
+                  <td className="table-cell text-center">
+                    {patient.healthInsurance?.name ?? "Sem convênio"}
+                  </td>
                   <td className="table-cell text-center">
                     <div className="flex justify-center gap-3">
                       <button
