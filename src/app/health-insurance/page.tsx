@@ -16,15 +16,18 @@ export default function HealthInsurancePage() {
   const [form, setForm] = useState<Partial<HealthInsurance>>({});
   const [editId, setEditId] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [pagination, setPagination] = useState({ total: 0, limit: 1, page: 1, totalPages: 0 });
 
-  const loadData = async () => {
-    const data = await getHealthInsurance();
-    setInsurances(data);
+
+  const loadData = async (limit = pagination.limit, page = pagination.page) => {
+    const res = await getHealthInsurance(limit, page);
+    setInsurances(res.data);
+    setPagination(res.pagination);
   };
 
   useEffect(() => {
-    loadData();
-  }, []);
+    loadData(pagination.limit, pagination.page);
+  }, [pagination.page, pagination.limit]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -83,6 +86,22 @@ export default function HealthInsurancePage() {
     }
   };
 
+  const formatCpf = (cpf: string) => {
+  const cleaned = cpf.replace(/\D/g, '').padEnd(11, '0');
+  return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+  };
+
+  const handlePageChange = (direction: "next" | "prev") => {
+    setPagination((prev) => {
+      const nextPage =
+        direction === "next"
+          ? Math.min(prev.page + 1, prev.totalPages)
+          : Math.max(0, prev.page - 1);
+
+      return { ...prev, page: nextPage };
+    });
+  };
+
   return (
     <main className="min-h-screen p-8 bg-gradient-to-br from-green-50 to-emerald-50">
       <div className="max-w-7xl mx-auto">
@@ -91,7 +110,7 @@ export default function HealthInsurancePage() {
             Gestão de Planos de Saúde
           </h1>
           <span className="text-lg text-gray-600">
-            Total: {insurances.length}
+            Total: {pagination.total}
           </span>
         </div>
 
@@ -191,59 +210,80 @@ export default function HealthInsurancePage() {
               </tr>
             </thead>
             <tbody>
-  {insurances.map((item) => (
-    <React.Fragment key={item.id}>
-      <tr className="hover:bg-green-50 transition-colors">
-        <td className="table-cell text-center">{item.name}</td>
-        <td className="table-cell text-center">{item.code}</td>
-        <td className="table-cell text-center">
-          R$ {Number(item.baseValue).toFixed(2)}
-        </td>
-        <td className="table-cell text-center">
-          <div className="flex justify-center gap-3">
+              {insurances.map((item) => (
+                <React.Fragment key={item.id}>
+                  <tr className="hover:bg-green-50 transition-colors">
+                    <td className="table-cell text-center">{item.name}</td>
+                    <td className="table-cell text-center">{item.code}</td>
+                    <td className="table-cell text-center">
+                      R$ {Number(item.baseValue).toFixed(2)}
+                    </td>
+                    <td className="table-cell text-center">
+                      <div className="flex justify-center gap-3">
+                        <button
+                          onClick={() => handleEdit(item)}
+                          className="action-icon edit-icon"
+                        >
+                          <PencilIcon className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="action-icon delete-icon"
+                        >
+                          <TrashIcon className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+
+                  {/* Lista de pacientes */}
+                  {item.patients && item.patients.length > 0 && (
+                    <tr>
+                      <td colSpan={4} className="table-cell bg-emerald-50 text-sm p-4">
+                        <div>
+                          <p className="font-semibold mb-2 text-emerald-700">
+                            Pacientes vinculados:
+                          </p>
+                          <div className="flex flex-wrap gap-4">
+                            {item.patients.map((patient) => (
+                              <div
+                                key={patient.id}
+                                className="p-4 bg-green-50 border border-green-200 rounded-xl shadow-sm"
+                              >
+                                <p className="font-semibold text-gray-700">{patient.name}</p>
+                                <p className="text-gray-500 text-sm">CPF: {formatCpf(patient.cpf)}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
+          <div className="flex justify-between items-center mt-0">
             <button
-              onClick={() => handleEdit(item)}
-              className="action-icon edit-icon"
+              onClick={() => handlePageChange("prev")}
+              disabled={pagination.page <= 1}
+              className="btn-secondary disabled:opacity-50"
             >
-              <PencilIcon className="w-5 h-5" />
+              Página anterior
             </button>
+
+            <span className="text-gray-600">
+              Página {pagination.page} de {pagination.totalPages}
+            </span>
+
             <button
-              onClick={() => handleDelete(item.id)}
-              className="action-icon delete-icon"
+              onClick={() => handlePageChange("next")}
+              disabled={pagination.page >= pagination.totalPages}
+              className="btn-secondary disabled:opacity-50"
             >
-              <TrashIcon className="w-5 h-5" />
+              Próxima página
             </button>
           </div>
-        </td>
-      </tr>
-
-      {/* Lista de pacientes */}
-      {item.patients && item.patients.length > 0 && (
-        <tr>
-          <td colSpan={4} className="table-cell bg-emerald-50 text-sm p-4">
-            <div>
-              <p className="font-semibold mb-2 text-emerald-700">
-                Pacientes vinculados:
-              </p>
-              <div className="flex flex-wrap gap-4">
-                {item.patients.map((patient) => (
-                  <div
-                    key={patient.id}
-                    className="p-4 bg-green-50 border border-green-200 rounded-xl shadow-sm"
-                  >
-                    <p className="font-semibold text-gray-700">{patient.name}</p>
-                    <p className="text-gray-500 text-sm">CPF: {patient.cpf}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </td>
-        </tr>
-      )}
-    </React.Fragment>
-  ))}
-</tbody>
-          </table>
         </div>
       </div>
     </main>

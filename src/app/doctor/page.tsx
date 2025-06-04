@@ -12,18 +12,35 @@ import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 export default function HomePage() {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [pagination, setPagination] = useState({ total: 0, limit: 5, page: 1, totalPages: 0 });
   const [form, setForm] = useState<Partial<Doctor>>({});
   const [editId, setEditId] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const loadData = async () => {
-    const data = await getDoctors();
-    setDoctors(data);
+const formatCpf = (cpf: string) => {
+  const cleaned = cpf.replace(/\D/g, '').padEnd(11, '0');
+  return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+};
+
+  const loadData = async (limit = pagination.limit, page = pagination.page) => {
+    const res = await getDoctors(limit, page);
+    setDoctors(res.data);
+    setPagination(res.pagination);
   };
 
   useEffect(() => {
-    loadData();
-  }, []);
+    const fetchDoctors = async () => {
+      const response = await getDoctors(pagination.limit, pagination.page);
+      setDoctors(response.data);
+      setPagination((prev) => ({
+        ...prev,
+        total: response.pagination.total,
+        totalPages: response.pagination.totalPages,
+      }));
+    };
+
+    fetchDoctors();
+  }, [pagination.page, pagination.limit]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({
@@ -84,7 +101,7 @@ export default function HomePage() {
     setEditId(doctor.id);
     setForm({
       name: doctor.name,
-      cpf: doctor.cpf,
+      cpf: formatCpf(doctor.cpf),
       crm: doctor.crm,
       birthDate: doctor.birthDate,
     });
@@ -100,6 +117,17 @@ export default function HomePage() {
     }
   };
 
+  const handlePageChange = (direction: "next" | "prev") => {
+    setPagination((prev) => {
+      const nextPage =
+        direction === "next"
+          ? Math.min(prev.page + 1, prev.totalPages)
+          : Math.max(0, prev.page - 1);
+
+      return { ...prev, page: nextPage };
+    });
+  };
+
   return (
     <main className="min-h-screen p-8 bg-gradient-to-br from-blue-50 to-indigo-50">
       <div className="max-w-7xl mx-auto">
@@ -109,7 +137,7 @@ export default function HomePage() {
           </h1>
           <div className="flex items-center gap-4">
             <span className="text-lg text-gray-600">
-              Total de médicos: {doctors.length}
+              Total de médicos: {pagination.total}
             </span>
           </div>
         </div>
@@ -232,33 +260,44 @@ export default function HomePage() {
               {doctors.map((doctor) => (
                 <tr key={doctor.id} className="hover:bg-blue-50/50 transition-colors">
                   <td className="table-cell text-center">{doctor.name}</td>
-                  <td className="table-cell text-center">{doctor.cpf}</td>
+                  <td className="table-cell text-center">{formatCpf(doctor.cpf)}</td>
                   <td className="table-cell text-center">{doctor.crm}</td>
                   <td className="table-cell text-center">
                     {new Date(doctor.birthDate).toLocaleDateString("pt-BR")}
                   </td>
                   <td className="table-cell text-center">
                     <div className="flex justify-center gap-3">
-                      <button
-                        onClick={() => handleEdit(doctor)}
-                        className="action-icon edit-icon hover:scale-110 transition-transform"
-                        title="Editar"
-                      >
-                        <PencilIcon className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(doctor.id)}
-                        className="action-icon delete-icon hover:scale-110 transition-transform"
-                        title="Deletar"
-                      >
-                        <TrashIcon className="w-5 h-5" />
-                      </button>
+                      <button onClick={() => handleEdit(doctor)}><PencilIcon className="w-5 h-5 text-blue-500" /></button>
+                      <button onClick={() => handleDelete(doctor.id)}><TrashIcon className="w-5 h-5 text-red-500" /></button>
                     </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+
+                    {/* Paginação */}
+          <div className="flex justify-between items-center mt-0">
+            <button
+              onClick={() => handlePageChange("prev")}
+              disabled={pagination.page <= 1}
+              className="btn-secondary disabled:opacity-50"
+            >
+              Página anterior
+            </button>
+
+            <span className="text-gray-600">
+              Página {pagination.page} de {pagination.totalPages}
+            </span>
+
+            <button
+              onClick={() => handlePageChange("next")}
+              disabled={pagination.page >= pagination.totalPages}
+              className="btn-secondary disabled:opacity-50"
+            >
+              Próxima página
+            </button>
+          </div>
         </div>
       </div>
     </main>

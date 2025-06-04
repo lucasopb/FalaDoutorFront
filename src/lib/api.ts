@@ -11,15 +11,21 @@ const api = axios.create({
 
 // MÉDICOS
 
-export const getDoctors = async (): Promise<Doctor[]> => {
+export const getDoctors = async (limit: number, page: number) => {
   try {
-    const res = await api.get("/doctor");
+    const res = await api.get("/doctor", {
+      params: {
+        page,
+        limit,
+      },
+    });
     return res.data;
   } catch (error: any) {
-    console.error("Erro ao pegar Usuários:", error.response?.data || error.message);
+    console.error("Erro ao pegar médicos:", error.response?.data || error.message);
     throw error;
   }
 };
+
 
 export const createDoctor = async (doctor: Doctor) => {
   try {
@@ -53,9 +59,15 @@ export const deleteDoctor = async (id: string) => {
 
 // PACIENTES
 
-export const getPatients = async (): Promise<Patient[]> => {
+export const getPatients = async (limit: number, page: number) => {
   try {
-    const res = await api.get("/patient");
+    const res = await api.get("/patient", {
+      params: {
+        page,
+        limit,
+      },
+    });
+    console.log(res.data)
     return res.data;
   } catch (error: any) {
     console.error("Erro ao pegar paciente:", error.response?.data || error.message);
@@ -95,12 +107,17 @@ export const deletePatient = async (id: string) => {
 
 // HEALTHINSURANCE
 
-export const getHealthInsurance = async (): Promise<HealthInsurance[]> => {
+export const getHealthInsurance = async (limit: number, page: number) => {
   try {
-    const res = await api.get("/health-insurance");
+      const res = await api.get("/health-insurance", {
+      params: {
+        page,
+        limit,
+      },
+    });
     return res.data;
   } catch (error: any) {
-    console.error("Erro ao pegar paciente:", error.response?.data || error.message);
+    console.error("Erro ao pegar plano:", error.response?.data || error.message);
     throw error;
   }
 };
@@ -110,7 +127,7 @@ export const createHealthInsurance = async (healthInsurance: HealthInsurance) =>
     const res = await api.post("/health-insurance", healthInsurance);
     return res.data;
   } catch (error: any) {
-    console.error("Erro ao criar paciente:", error.response?.data || error.message);
+    console.error("Erro ao criar plano:", error.response?.data || error.message);
     throw error;
   }
 };
@@ -120,7 +137,7 @@ export const updateHealthInsurance = async (id: string, healthInsurance: HealthI
     const res = await api.put(`/health-insurance/${id}`, healthInsurance);
     return res.data;
   } catch (error: any) {
-    console.error("Erro ao atualizar paciente:", error.response?.data || error.message);
+    console.error("Erro ao atualizar plano:", error.response?.data || error.message);
     throw error;
   }
 };
@@ -130,7 +147,7 @@ export const deleteHealthInsurance = async (id: string) => {
     const res = await api.delete(`/health-insurance/${id}`);
     return res.data;
   } catch (error: any) {
-    console.error("Erro ao deletar paciente:", error.response?.data || error.message);
+    console.error("Erro ao deletar plano:", error.response?.data || error.message);
     throw error;
   }
 };

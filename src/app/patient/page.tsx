@@ -18,21 +18,28 @@ export default function HomePage() {
   const [editId, setEditId] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [healthInsurances, setHealthInsurances] = useState<HealthInsurance[]>([]);
+  const [pagination, setPagination] = useState({ total: 0, limit: 5, page: 1, totalPages: 0 });
 
+  const formatCpf = (cpf: string) => {
+    const cleaned = cpf.replace(/\D/g, '').padEnd(11, '0');
+    return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+  };
 
-  const loadPatients = async () => {
-    const data = await getPatients();
-    setPatients(data);
+  const loadPatients = async (limit = pagination.limit, page = pagination.page) => {
+    const res = await getPatients(limit, page);
+    setPatients(res.data);
+    setPagination(res.pagination);
   };
 
   useEffect(() => {
-    loadPatients();
+    loadPatients(pagination.limit, pagination.page);
     loadHealthInsurances();
-  }, []);
+  }, [pagination.page]);
+
   
-  const loadHealthInsurances = async () => {
-    const data = await getHealthInsurance();
-    setHealthInsurances(data);
+  const loadHealthInsurances = async (limit = 10, page = 0) => {
+    const res = await getHealthInsurance(limit, page);
+    setHealthInsurances(res.data);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -97,7 +104,7 @@ export default function HomePage() {
     setEditId(patient.id);
     setForm({
       name: patient.name,
-      cpf: patient.cpf,
+      cpf: formatCpf(patient.cpf),
       birthDate: patient.birthDate,
       healthInsurance: patient.healthInsurance || null,
     });
@@ -113,6 +120,17 @@ export default function HomePage() {
     }
   };
 
+  const handlePageChange = (direction: "next" | "prev") => {
+    setPagination((prev) => {
+      const nextPage =
+        direction === "next"
+          ? Math.min(prev.page + 1, prev.totalPages)
+          : Math.max(0, prev.page - 1);
+
+      return { ...prev, page: nextPage };
+    });
+  };
+
   return (
     <main className="min-h-screen p-8 bg-gradient-to-br from-indigo-50 to-purple-50">
       <div className="max-w-7xl mx-auto">
@@ -122,7 +140,7 @@ export default function HomePage() {
           </h1>
           <div className="flex items-center gap-4">
             <span className="text-lg text-gray-600">
-              Total de pacientes: {patients.length}
+              Total de pacientes: {pagination.total}
             </span>
           </div>
         </div>
@@ -248,7 +266,7 @@ export default function HomePage() {
               {patients.map((patient) => (
                 <tr key={patient.id} className="hover:bg-indigo-50/50 transition-colors">
                   <td className="table-cell text-center">{patient.name}</td>
-                  <td className="table-cell text-center">{patient.cpf}</td>
+                  <td className="table-cell text-center">{formatCpf(patient.cpf)}</td>
                   <td className="table-cell text-center">
                     {new Date(patient.birthDate).toLocaleDateString("pt-BR")}
                   </td>
@@ -277,8 +295,30 @@ export default function HomePage() {
               ))}
             </tbody>
           </table>
-        </div>
 
+          <div className="flex justify-between items-center mt-0">
+            <button
+              onClick={() => handlePageChange("prev")}
+              disabled={pagination.page <= 1}
+              className="btn-secondary disabled:opacity-50"
+            >
+              Página anterior
+            </button>
+
+            <span className="text-gray-600">
+              Página {pagination.page} de {pagination.totalPages}
+            </span>
+
+            <button
+              onClick={() => handlePageChange("next")}
+              disabled={pagination.page >= pagination.totalPages}
+              className="btn-secondary disabled:opacity-50"
+            >
+              Próxima página
+            </button>
+          </div>
+
+        </div>
       </div>
     </main>
   );
