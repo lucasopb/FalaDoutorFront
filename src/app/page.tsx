@@ -62,6 +62,21 @@ export default function Home() {
               </p>
             </div>
           </Link>
+
+          <Link
+            href="/report"
+            className="group relative bg-white rounded-2xl p-8 text-center transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-indigo-500/20 border border-indigo-100 overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 group-hover:from-indigo-500/10 group-hover:to-purple-500/10 transition-all duration-300" />
+            <div className="relative z-10">
+              <h3 className="text-2xl font-bold text-indigo-600 mb-3 group-hover:text-indigo-700 transition-colors">
+                Relatorios
+              </h3>
+              <p className="text-gray-600 group-hover:text-gray-700 transition-colors">
+                Gere relatorios com os dados
+              </p>
+            </div>
+          </Link>
         </div>
       </div>
     </main>

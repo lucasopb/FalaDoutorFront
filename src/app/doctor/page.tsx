@@ -17,11 +17,6 @@ export default function HomePage() {
   const [editId, setEditId] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-const formatCpf = (cpf: string) => {
-  const cleaned = cpf.replace(/\D/g, '').padEnd(11, '0');
-  return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
-};
-
   const loadData = async (limit = pagination.limit, page = pagination.page) => {
     const res = await getDoctors(limit, page);
     setDoctors(res.data);
@@ -101,7 +96,7 @@ const formatCpf = (cpf: string) => {
     setEditId(doctor.id);
     setForm({
       name: doctor.name,
-      cpf: formatCpf(doctor.cpf),
+      cpf: (doctor.cpf),
       crm: doctor.crm,
       birthDate: doctor.birthDate,
     });
@@ -260,7 +255,7 @@ const formatCpf = (cpf: string) => {
               {doctors.map((doctor) => (
                 <tr key={doctor.id} className="hover:bg-blue-50/50 transition-colors">
                   <td className="table-cell text-center">{doctor.name}</td>
-                  <td className="table-cell text-center">{formatCpf(doctor.cpf)}</td>
+                  <td className="table-cell text-center">{(doctor.cpf)}</td>
                   <td className="table-cell text-center">{doctor.crm}</td>
                   <td className="table-cell text-center">
                     {new Date(doctor.birthDate).toLocaleDateString("pt-BR")}

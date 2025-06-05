@@ -151,3 +151,35 @@ export const deleteHealthInsurance = async (id: string) => {
     throw error;
   }
 };
+
+//  REPORT
+
+export const generateReport = async (
+  entity: string,
+  filters: Record<string, any>, 
+  limit: number,
+  page: number
+) => {
+  try {
+    console.log(filters)
+    const res = await api.post(
+      "/report",
+      {
+        entity,
+        filters,
+      },
+      {
+        params: {
+          page,
+          limit,
+        },
+      }
+    );
+
+    return res.data;
+  } catch (error: any) {
+    console.error("Erro ao gerar relatório:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
