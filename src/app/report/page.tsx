@@ -126,7 +126,7 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
               onChange={(e) => setFilters(prev => ({ ...prev, healthInsuranceId: e.target.value }))}
               className="input-field"
             >
-              <option value="">Selecione um convênio</option>
+              <option value="">Sem especificar convênio</option>
               {healthInsurances.data.map((ins) => (
                 <option key={ins.id} value={ins.id}>
                   {ins.name}

@@ -101,7 +101,7 @@ export default function HomePage() {
       name: patient.name,
       cpf: (patient.cpf),
       birthDate: patient.birthDate,
-      healthInsurance: patient.healthInsurance || null,
+      healthInsurance: patient.healthInsurance?.id || null,
     });
     setErrors({});
   };
