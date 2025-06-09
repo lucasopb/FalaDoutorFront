@@ -20,11 +20,6 @@ export default function HomePage() {
   const [healthInsurances, setHealthInsurances] = useState<HealthInsurance[]>([]);
   const [pagination, setPagination] = useState({ total: 0, limit: 5, page: 1, totalPages: 0 });
 
-  const formatCpf = (cpf: string) => {
-    const cleaned = cpf.replace(/\D/g, '').padEnd(11, '0');
-    return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
-  };
-
   const loadPatients = async (limit = pagination.limit, page = pagination.page) => {
     const res = await getPatients(limit, page);
     setPatients(res.data);
@@ -104,7 +99,7 @@ export default function HomePage() {
     setEditId(patient.id);
     setForm({
       name: patient.name,
-      cpf: formatCpf(patient.cpf),
+      cpf: (patient.cpf),
       birthDate: patient.birthDate,
       healthInsurance: patient.healthInsurance || null,
     });
@@ -266,7 +261,7 @@ export default function HomePage() {
               {patients.map((patient) => (
                 <tr key={patient.id} className="hover:bg-indigo-50/50 transition-colors">
                   <td className="table-cell text-center">{patient.name}</td>
-                  <td className="table-cell text-center">{formatCpf(patient.cpf)}</td>
+                  <td className="table-cell text-center">{(patient.cpf)}</td>
                   <td className="table-cell text-center">
                     {new Date(patient.birthDate).toLocaleDateString("pt-BR")}
                   </td>

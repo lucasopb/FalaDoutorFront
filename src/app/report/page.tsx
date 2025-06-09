@@ -1,12 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { generateReport } from "@/lib/api";
+import { getHealthInsurance } from "@/lib/api";
+import { HealthInsurance } from "@/types/healthInsurance";
+
 
 type Entity = "doctor" | "patient" | "health_insurance";
 
 export default function ReportPage() {
   const [entity, setEntity] = useState<Entity>("doctor");
+  const [healthInsurances, setHealthInsurances] = useState<{ data: HealthInsurance[]; pagination: string }>({ data: [], pagination: "" });
   const [filters, setFilters] = useState<Record<string, any>>({});
   const [data, setData] = useState<any[]>([]);
   const [pagination, setPagination] = useState({
@@ -16,6 +20,20 @@ export default function ReportPage() {
     total: 0,
   });
   const [hasGenerated, setHasGenerated] = useState(false); // NOVO estado para controlar exibição dos dados
+
+useEffect(() => {
+  const fetchHealthInsurances = async (limit = 50, page = 1) => {
+    try {
+      const result = await getHealthInsurance(limit, page);
+      setHealthInsurances(result);
+    } catch (err) {
+      console.error("Erro ao buscar convênios:", err);
+    }
+  };
+
+  fetchHealthInsurances();
+}, []);
+
 
 const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   const { name, value } = e.target;
@@ -38,6 +56,10 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   if (name === "code") {
     newValue = value.replace(/\D/g, "").slice(0, 10); // Apenas números, máximo 10 dígitos
   }
+
+    if (name === "healthInsuranceId") {
+    newValue = value.replace(/\s/g, ""); // remove todos os espaços
+    }
 
   setFilters((prev) => ({
     ...prev,
@@ -98,7 +120,19 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
           <>
             <input name="name" placeholder="Nome" onChange={handleChange} value={filters.name ?? ""} className="input-field" />
             <input name="cpf" type="text" placeholder="CPF" onChange={handleChange} value={filters.cpf ?? ""} className="input-field" />
-            <input name="healthInsuranceId" placeholder="ID do Convênio" onChange={handleChange} value={filters.healthInsuranceId ?? ""} className="input-field" />
+            <select
+              name="healthInsuranceId"
+              value={filters.healthInsuranceId ?? ""}
+              onChange={(e) => setFilters(prev => ({ ...prev, healthInsuranceId: e.target.value }))}
+              className="input-field"
+            >
+              <option value="">Selecione um convênio</option>
+              {healthInsurances.data.map((ins) => (
+                <option key={ins.id} value={ins.id}>
+                  {ins.name}
+                </option>
+              ))}
+            </select>
             <input name="ageMin" type="number" placeholder="Idade mínima" onChange={handleChange} value={filters.ageMin ?? ""} className="input-field" />
             <input name="ageMax" type="number" placeholder="Idade máxima" onChange={handleChange} value={filters.ageMax ?? ""} className="input-field" />
           </>
@@ -160,22 +194,35 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         {hasGenerated && data.length > 0 && (
           <div className="bg-white p-6 rounded-2xl shadow-xl border border-blue-100">
             <h2 className="text-xl font-semibold mb-4 text-gray-700">Resultados</h2>
+            <p className="text-sm text-gray-600 mb-2">
+              Total de resultados: <span className="font-medium">{pagination.total}</span>
+            </p>
             <table className="w-full text-left table-auto border-collapse">
               <thead>
                 <tr className="border-b">
-                  {Object.keys(data[0]).map((key) => (
-                    <th key={key} className="py-2 px-4 font-medium text-gray-600">{key}</th>
+                  {Object.keys(data[0])
+                    .filter((key) => key !== "id")
+                    .map((key) => (
+                      <th key={key} className="py-2 px-4 font-medium text-gray-600 capitalize">
+                        {key}
+                      </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {data.map((item, i) => (
                   <tr key={i} className="border-b hover:bg-gray-50">
-                    {Object.values(item).map((value, j) => (
+                   {Object.entries(item)
+                    .filter(([key]) => key !== "id")
+                    .map(([key, value], j) => (
                       <td key={j} className="py-2 px-4 text-sm text-gray-700">
-                        {String(value)}
+                        {key === "healthInsurance"
+                          ? (value && typeof value === "object" && "name" in value
+                              ? (value as { name: string }).name
+                              : "Sem convênio")
+                          : String(value)}
                       </td>
-                    ))}
+                  ))}
                   </tr>
                 ))}
               </tbody>
