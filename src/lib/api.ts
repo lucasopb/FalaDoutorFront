@@ -26,6 +26,15 @@ export const getDoctors = async (limit: number, page: number) => {
   }
 };
 
+export const getDoctorsById = async (id: string) => {
+  try {
+    const res = await api.get(`/doctor/${id}`);
+    return res.data;
+  } catch (error: any) {
+    console.error("Erro ao pegar médicos:", error.response?.data || error.message);
+    throw error;
+  }
+};
 
 export const createDoctor = async (doctor: Doctor) => {
   try {
@@ -109,7 +118,7 @@ export const deletePatient = async (id: string) => {
 
 export const getHealthInsurance = async (limit: number, page: number) => {
   try {
-      const res = await api.get("/health-insurance", {
+    const res = await api.get("/health-insurance", {
       params: {
         page,
         limit,
@@ -156,7 +165,7 @@ export const deleteHealthInsurance = async (id: string) => {
 
 export const generateReport = async (
   entity: string,
-  filters: Record<string, any>, 
+  filters: Record<string, any>,
   limit: number,
   page: number
 ) => {
@@ -179,6 +188,42 @@ export const generateReport = async (
     return res.data;
   } catch (error: any) {
     console.error("Erro ao gerar relatório:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+// DOCTOR_HEALTH_INSURANCE
+
+export const getDoctorHealthInsurance = async () => {
+  try {
+    const res = await api.get("/doctor-health-insurance")
+    return res.data
+  } catch (err: any) {
+    throw err
+  }
+}
+
+export const deleteDoctorHealthInsurance = async (id: string) => {
+  try {
+    const res = await api.delete(`/doctor-health-insurance/${id}`)
+    return res.data
+  } catch (err: any) {
+    throw err
+  }
+}
+
+export const createDoctorHealthInsurance = async (
+  doctorId: string,
+  healthInsuranceId: string
+) => {
+  try {
+    const res = await api.post("/doctor-health-insurance", {
+      doctorId,
+      healthInsuranceId,
+    });
+    return res.data;
+  } catch (error: any) {
+    console.error("Erro ao criar associação médico/plano:", error.response?.data || error.message);
     throw error;
   }
 };

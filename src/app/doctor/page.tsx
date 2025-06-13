@@ -2,16 +2,35 @@
 
 import { useEffect, useState } from "react";
 import { Doctor } from "@/types/doctor";
+import { HealthInsurance } from "@/types/healthInsurance";
 import {
   getDoctors,
   createDoctor,
   updateDoctor,
   deleteDoctor,
+  getHealthInsurance,
+  createDoctorHealthInsurance,
+  getDoctorHealthInsurance,
+  getDoctorsById,
+  deleteDoctorHealthInsurance,
 } from "@/lib/api";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
+interface DoctorHealthInsurance {
+  id: string;
+  healthInsurance: HealthInsurance;
+}
+
+interface DoctorDetails extends Doctor {
+  doctorHealthInsurances: DoctorHealthInsurance[];
+}
+
 export default function HomePage() {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [healthInsurances, setHealthInsurances] = useState<HealthInsurance[]>([]);
+  const [selectedHealthInsurances, setSelectedHealthInsurances] = useState<string[]>([]);
+  const [doctorHealthInsurances, setDoctorHealthInsurances] = useState<Record<string, HealthInsurance[]>>({});
+  const [expandedDoctors, setExpandedDoctors] = useState<string[]>([]);
   const [pagination, setPagination] = useState({ total: 0, limit: 5, page: 1, totalPages: 0 });
   const [form, setForm] = useState<Partial<Doctor>>({});
   const [editId, setEditId] = useState<string | null>(null);
@@ -24,28 +43,44 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    const fetchDoctors = async () => {
-      const response = await getDoctors(pagination.limit, pagination.page);
-      setDoctors(response.data);
+    const fetchData = async () => {
+      const [doctorsRes, healthInsurancesRes] = await Promise.all([
+        getDoctors(pagination.limit, pagination.page),
+        getHealthInsurance(100, 1), // Get all health insurances
+      ]);
+
+      setDoctors(doctorsRes.data);
       setPagination((prev) => ({
         ...prev,
-        total: response.pagination.total,
-        totalPages: response.pagination.totalPages,
+        total: doctorsRes.pagination.total,
+        totalPages: doctorsRes.pagination.totalPages,
       }));
+      setHealthInsurances(healthInsurancesRes.data);
     };
 
-    fetchDoctors();
+    fetchData();
   }, [pagination.page, pagination.limit]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+
+    if (type === 'checkbox') {
+      if (checked) {
+        setSelectedHealthInsurances(prev => [...prev, value]);
+      } else {
+        setSelectedHealthInsurances(prev => prev.filter(id => id !== value));
+      }
+      return;
+    }
+
     setForm((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: value,
     }));
 
     setErrors((prev) => ({
       ...prev,
-      [e.target.name]: "",
+      [name]: "",
     }));
   };
 
@@ -77,22 +112,63 @@ export default function HomePage() {
     if (!validate()) return;
 
     try {
+      let doctorId;
       if (editId) {
         await updateDoctor(editId, form as Doctor);
+        doctorId = editId;
+
+        // Get current health insurances for comparison
+        const currentDoctor: DoctorDetails = await getDoctorsById(doctorId);
+        const currentHealthInsuranceIds = new Set(
+          currentDoctor.doctorHealthInsurances?.map(dhi => dhi.healthInsurance.id) || []
+        );
+
+        // Add new associations
+        for (const healthInsuranceId of selectedHealthInsurances) {
+          if (!currentHealthInsuranceIds.has(healthInsuranceId)) {
+            try {
+              await createDoctorHealthInsurance(doctorId, healthInsuranceId);
+            } catch (error) {
+              console.error(`Erro ao associar plano ${healthInsuranceId}:`, error);
+            }
+          }
+        }
+
+        // Remove unchecked associations
+        for (const dhi of currentDoctor.doctorHealthInsurances || []) {
+          if (!selectedHealthInsurances.includes(dhi.healthInsurance.id)) {
+            try {
+              await deleteDoctorHealthInsurance(dhi.id);
+            } catch (error) {
+              console.error(`Erro ao remover plano ${dhi.healthInsurance.id}:`, error);
+            }
+          }
+        }
       } else {
-        await createDoctor(form as Doctor);
+        const newDoctor = await createDoctor(form as Doctor);
+        doctorId = newDoctor.id;
+
+        // Add health insurance associations for new doctor
+        for (const healthInsuranceId of selectedHealthInsurances) {
+          try {
+            await createDoctorHealthInsurance(doctorId, healthInsuranceId);
+          } catch (error) {
+            console.error(`Erro ao associar plano ${healthInsuranceId}:`, error);
+          }
+        }
       }
 
       setForm({});
       setEditId(null);
       setErrors({});
+      setSelectedHealthInsurances([]);
       loadData();
     } catch (error) {
       console.error("Erro ao salvar médico:", error);
     }
   };
 
-  const handleEdit = (doctor: Doctor) => {
+  const handleEdit = async (doctor: Doctor) => {
     setEditId(doctor.id);
     setForm({
       name: doctor.name,
@@ -100,7 +176,27 @@ export default function HomePage() {
       crm: doctor.crm,
       birthDate: doctor.birthDate,
     });
+
+    // Collapse all expanded health insurance views
+    setExpandedDoctors([]);
+    setDoctorHealthInsurances({});
+
+    try {
+      const doctorDetails: DoctorDetails = await getDoctorsById(doctor.id);
+      const healthInsuranceIds = doctorDetails.doctorHealthInsurances?.map(dhi => dhi.healthInsurance.id) || [];
+      setSelectedHealthInsurances(healthInsuranceIds);
+    } catch (error) {
+      console.error("Erro ao carregar planos do médico:", error);
+    }
+
     setErrors({});
+  };
+
+  const handleCancel = () => {
+    setEditId(null);
+    setForm({});
+    setErrors({});
+    setSelectedHealthInsurances([]);
   };
 
   const handleDelete = async (id: string) => {
@@ -121,6 +217,24 @@ export default function HomePage() {
 
       return { ...prev, page: nextPage };
     });
+  };
+
+  const handleExpandDoctor = async (doctorId: string) => {
+    if (expandedDoctors.includes(doctorId)) {
+      setExpandedDoctors(prev => prev.filter(id => id !== doctorId));
+      return;
+    }
+
+    try {
+      const doctorDetails: DoctorDetails = await getDoctorsById(doctorId);
+      setDoctorHealthInsurances(prev => ({
+        ...prev,
+        [doctorId]: doctorDetails.doctorHealthInsurances?.map(dhi => dhi.healthInsurance) || []
+      }));
+      setExpandedDoctors(prev => [...prev, doctorId]);
+    } catch (error) {
+      console.error("Erro ao carregar planos do médico:", error);
+    }
   };
 
   return (
@@ -198,7 +312,7 @@ export default function HomePage() {
                   handleChange({ target: { name: "crm", value } } as any);
                 }}
                 className="input-field w-70 group-hover:border-blue-300 transition-colors"
-                placeholder="Número do CRM"
+                placeholder="000000"
               />
               {errors.crm && <p className="text-sm text-red-500 mt-1">{errors.crm}</p>}
             </div>
@@ -214,83 +328,162 @@ export default function HomePage() {
                 onChange={handleChange}
                 className="input-field w-70 group-hover:border-blue-300 transition-colors"
               />
-              {errors.birthDate && <p className="text-sm text-red-500 mt-1">{errors.birthDate}</p>}
+              {errors.birthDate && (
+                <p className="text-sm text-red-500 mt-1">{errors.birthDate}</p>
+              )}
+            </div>
+
+            <div className="flex flex-col w-full p-2 group">
+              <label className="block text-sm font-medium text-gray-600 mb-2 group-hover:text-gray-800 transition-colors">
+                Planos de Saúde
+              </label>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {healthInsurances.map((hi) => (
+                  <label key={hi.id} className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name="healthInsurances"
+                      value={hi.id}
+                      checked={selectedHealthInsurances.includes(hi.id)}
+                      onChange={handleChange}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <span className="text-sm text-gray-700">{hi.name} ({hi.code})</span>
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
 
           <div className="flex justify-end gap-4 mt-6">
             {editId && (
               <button
-                onClick={() => {
-                  setEditId(null);
-                  setForm({});
-                  setErrors({});
-                }}
-                className="btn-secondary hover:bg-gray-100 transition-colors"
+                onClick={handleCancel}
+                className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transform transition hover:scale-105"
               >
                 Cancelar
               </button>
             )}
             <button
               onClick={handleSubmit}
-              className="btn-primary hover:scale-105 transition-transform"
+              className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform transition hover:scale-105"
             >
               {editId ? "Atualizar" : "Cadastrar"}
             </button>
           </div>
         </div>
 
-        <div className="table-container animate-fade-in bg-white rounded-2xl shadow-xl border border-blue-100 overflow-hidden">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gradient-to-r from-blue-50 to-indigo-50">
-                <th className="table-cell">Nome</th>
-                <th className="table-cell">CPF</th>
-                <th className="table-cell">CRM</th>
-                <th className="table-cell">Nascimento</th>
-                <th className="table-cell text-center">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {doctors.map((doctor) => (
-                <tr key={doctor.id} className="hover:bg-blue-50/50 transition-colors">
-                  <td className="table-cell text-center">{doctor.name}</td>
-                  <td className="table-cell text-center">{(doctor.cpf)}</td>
-                  <td className="table-cell text-center">{doctor.crm}</td>
-                  <td className="table-cell text-center">
-                    {new Date(doctor.birthDate).toLocaleDateString("pt-BR")}
-                  </td>
-                  <td className="table-cell text-center">
-                    <div className="flex justify-center gap-3">
-                      <button onClick={() => handleEdit(doctor)}><PencilIcon className="w-5 h-5 text-blue-500" /></button>
-                      <button onClick={() => handleDelete(doctor.id)}><TrashIcon className="w-5 h-5 text-red-500" /></button>
-                    </div>
-                  </td>
+        <div className="bg-white rounded-2xl shadow-xl border border-blue-100 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Nome
+                  </th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    CPF
+                  </th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    CRM
+                  </th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Data de Nascimento
+                  </th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Planos de Saúde
+                  </th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Ações
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {doctors.map((doctor) => (
+                  <tr key={doctor.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
+                      {doctor.name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
+                      {doctor.cpf}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
+                      {doctor.crm}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
+                      {new Date(doctor.birthDate).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      <div className="flex flex-col items-center gap-1">
+                        <button
+                          onClick={() => handleExpandDoctor(doctor.id)}
+                          className="text-blue-600 hover:text-blue-800 underline text-sm"
+                        >
+                          {expandedDoctors.includes(doctor.id) ? 'Ocultar planos' : 'Ver planos'}
+                        </button>
+                        {expandedDoctors.includes(doctor.id) && (
+                          <div className="flex flex-col gap-1 mt-1 items-center">
+                            {doctorHealthInsurances[doctor.id]?.length > 0 ? (
+                              doctorHealthInsurances[doctor.id].map((hi) => (
+                                <span
+                                  key={hi.id}
+                                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                                >
+                                  {hi.name} ({hi.code})
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-gray-400 text-xs">Nenhum plano cadastrado</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
+                      <div className="flex justify-center space-x-2">
+                        <button
+                          onClick={() => handleEdit(doctor)}
+                          className="text-indigo-600 hover:text-indigo-900"
+                        >
+                          <PencilIcon className="h-5 w-5" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(doctor.id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          <TrashIcon className="h-5 w-5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-                    {/* Paginação */}
-          <div className="flex justify-between items-center mt-0">
+          <div className="px-6 py-4 flex justify-between items-center bg-gray-50">
             <button
               onClick={() => handlePageChange("prev")}
-              disabled={pagination.page <= 1}
-              className="btn-secondary disabled:opacity-50"
+              disabled={pagination.page === 1}
+              className={`px-4 py-2 text-sm rounded-lg ${pagination.page === 1
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-blue-600 text-white hover:bg-blue-700"
+                }`}
             >
-              Página anterior
+              Anterior
             </button>
-
-            <span className="text-gray-600">
+            <span className="text-sm text-gray-600">
               Página {pagination.page} de {pagination.totalPages}
             </span>
-
             <button
               onClick={() => handlePageChange("next")}
-              disabled={pagination.page >= pagination.totalPages}
-              className="btn-secondary disabled:opacity-50"
+              disabled={pagination.page === pagination.totalPages}
+              className={`px-4 py-2 text-sm rounded-lg ${pagination.page === pagination.totalPages
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-blue-600 text-white hover:bg-blue-700"
+                }`}
             >
-              Próxima página
+              Próxima
             </button>
           </div>
         </div>
