@@ -31,7 +31,7 @@
 }
 
 body {
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  background: var(--background);
   min-height: 100vh;
   color: var(--text-primary);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -39,15 +39,11 @@ body {
 
 @layer components {
   .btn-primary {
-    @apply px-4 py-2 rounded-lg bg-[var(--primary)] text-white 
-           hover:bg-[var(--primary-hover)] transition-colors duration-200
-           focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2;
+    @apply px-4 py-2 rounded-lg bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2;
   }
 
   .btn-secondary {
-    @apply px-4 py-2 rounded-lg bg-white text-[var(--text-primary)] 
-           border border-[var(--border-color)] hover:bg-[var(--background-hover)]
-           transition-colors duration-200;
+    @apply px-4 py-2 rounded-lg bg-white text-[var(--text-primary)] border border-[var(--border-color)] hover:bg-[var(--background-hover)] transition-colors duration-200;
   }
 
   .btn-danger {
@@ -55,9 +51,7 @@ body {
   }
 
   .input-field {
-    @apply w-full px-4 py-2 rounded-lg border border-[var(--border-color)] 
-           focus:outline-none focus:ring-2 focus:ring-[var(--primary)] 
-           transition-all duration-200 bg-white;
+    @apply w-full px-4 py-2 rounded-lg border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all duration-200 bg-white;
   }
 
   .card {
@@ -65,13 +59,11 @@ body {
   }
 
   .table-container {
-    @apply overflow-hidden rounded-xl border border-[var(--border-color)] 
-           shadow-[var(--shadow-md)] bg-white;
+    @apply overflow-hidden rounded-xl border border-[var(--border-color)] shadow-[var(--shadow-md)] bg-white;
   }
 
   .table-header {
-    @apply bg-[var(--background-hover)] text-[var(--text-secondary)] 
-           font-medium text-sm uppercase tracking-wider;
+    @apply bg-[var(--background-hover)] text-[var(--text-secondary)] font-medium text-sm uppercase tracking-wider;
   }
 
   .table-cell {
@@ -94,14 +86,29 @@ body {
 
 /* Animações */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes gradientX {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .animate-fade-in {
@@ -118,7 +125,7 @@ body {
   .table-container {
     @apply overflow-x-auto;
   }
-  
+
   .table-cell {
     @apply px-4 py-3;
   }

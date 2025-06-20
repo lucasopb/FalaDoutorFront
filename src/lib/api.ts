@@ -228,3 +228,47 @@ export const createDoctorHealthInsurance = async (
   }
 };
 
+// IMPORTS
+
+export const importDoctors = async (file: File) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  try {
+    const res = await api.post("/import/doctors", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data;
+  } catch (error: any) {
+    console.error("Erro ao importar médicos:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const importPatients = async (file: File) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  try {
+    const res = await api.post("/import/patients", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data;
+  } catch (error: any) {
+    console.error("Erro ao importar pacientes:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const importHealthInsurances = async (file: File) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  try {
+    const res = await api.post("/import/health-insurances", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data;
+  } catch (error: any) {
+    console.error("Erro ao importar planos de saúde:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
