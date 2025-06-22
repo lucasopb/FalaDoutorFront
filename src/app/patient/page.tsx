@@ -31,7 +31,7 @@ export default function HomePage() {
     loadHealthInsurances();
   }, [pagination.page]);
 
-  
+
   const loadHealthInsurances = async (limit = 10, page = 0) => {
     const res = await getHealthInsurance(limit, page);
     setHealthInsurances(res.data);
@@ -127,27 +127,27 @@ export default function HomePage() {
   };
 
   return (
-    <main className="min-h-screen p-8 bg-gradient-to-br from-indigo-50 to-purple-50">
+    <main className="min-h-screen p-6 bg-gradient-to-br from-indigo-50 to-purple-50">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="title-xl text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
             Gestão de Pacientes
           </h1>
           <div className="flex items-center gap-4">
-            <span className="text-lg text-gray-600">
+            <span className="text-sm text-gray-600">
               Total de pacientes: {pagination.total}
             </span>
           </div>
         </div>
 
-        <div className="card mb-8 animate-fade-in bg-white rounded-2xl p-8 shadow-xl border border-indigo-100">
-          <h2 className="text-2xl font-semibold mb-6 text-gray-800">
+        <div className="card mb-6 animate-fade-in bg-white rounded-lg p-6 shadow-lg border border-indigo-100">
+          <h2 className="title-md mb-4 text-gray-800">
             {editId ? "Editar Paciente" : "Cadastrar Novo Paciente"}
           </h2>
 
           <div className="flex flex-wrap">
-            <div className="flex flex-col w-full md:w-1/4 group">
-              <label className="block text-sm font-medium text-gray-600 mb-2 group-hover:text-gray-800 transition-colors">
+            <div className="flex flex-col w-full md:w-1/4 p-2 group">
+              <label className="block text-xs font-medium text-gray-600 mb-1 group-hover:text-gray-800 transition-colors">
                 Nome
               </label>
               <input
@@ -158,11 +158,11 @@ export default function HomePage() {
                 onChange={handleChange}
                 className="input-field w-70 group-hover:border-indigo-300 transition-colors"
               />
-              {errors.name && <p className="text-sm text-red-500 mt-1">{errors.name}</p>}
+              {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
             </div>
 
-            <div className="flex flex-col w-full md:w-1/4 group">
-              <label className="block text-sm font-medium text-gray-600 mb-2 group-hover:text-gray-800 transition-colors">
+            <div className="flex flex-col w-full md:w-1/4 p-2 group">
+              <label className="block text-xs font-medium text-gray-600 mb-1 group-hover:text-gray-800 transition-colors">
                 CPF
               </label>
               <input
@@ -185,11 +185,11 @@ export default function HomePage() {
                 }}
                 className="input-field w-70 group-hover:border-indigo-300 transition-colors"
               />
-              {errors.cpf && <p className="text-sm text-red-500 mt-1">{errors.cpf}</p>}
+              {errors.cpf && <p className="text-xs text-red-500 mt-1">{errors.cpf}</p>}
             </div>
 
-            <div className="flex flex-col w-full md:w-1/4 group">
-              <label className="block text-sm font-medium text-gray-600 mb-2 group-hover:text-gray-800 transition-colors">
+            <div className="flex flex-col w-full md:w-1/4 p-2 group">
+              <label className="block text-xs font-medium text-gray-600 mb-1 group-hover:text-gray-800 transition-colors">
                 Convênio
               </label>
               <select
@@ -198,19 +198,17 @@ export default function HomePage() {
                 onChange={handleChange}
                 className="input-field w-70 group-hover:border-indigo-300 transition-colors"
               >
-                <option value="">Sem Convênio</option>
+                <option value="">Selecione um convênio</option>
                 {healthInsurances.map((hi) => (
                   <option key={hi.id} value={hi.id}>
-                    {hi.name}
+                    {hi.name} ({hi.code})
                   </option>
                 ))}
               </select>
-
-              {errors.healthInsurance && <p className="text-sm text-red-500 mt-1">{errors.healthInsurance}</p>}
             </div>
 
-            <div className="flex flex-col w-full md:w-1/4 group">
-              <label className="block text-sm font-medium text-gray-600 mb-2 group-hover:text-gray-800 transition-colors">
+            <div className="flex flex-col w-full md:w-1/4 p-2 group">
+              <label className="block text-xs font-medium text-gray-600 mb-1 group-hover:text-gray-800 transition-colors">
                 Data de Nascimento
               </label>
               <input
@@ -220,11 +218,13 @@ export default function HomePage() {
                 onChange={handleChange}
                 className="input-field w-70 group-hover:border-indigo-300 transition-colors"
               />
-              {errors.birthDate && <p className="text-sm text-red-500 mt-1">{errors.birthDate}</p>}
+              {errors.birthDate && (
+                <p className="text-xs text-red-500 mt-1">{errors.birthDate}</p>
+              )}
             </div>
           </div>
 
-          <div className="flex justify-end gap-4 mt-6">
+          <div className="flex justify-end gap-3 mt-4">
             {editId && (
               <button
                 onClick={() => {
@@ -232,87 +232,129 @@ export default function HomePage() {
                   setForm({});
                   setErrors({});
                 }}
-                className="btn-secondary hover:bg-gray-100 transition-colors"
+                className="btn-secondary"
               >
                 Cancelar
               </button>
             )}
             <button
               onClick={handleSubmit}
-              className="btn-primary hover:scale-105 transition-transform"
+              className="btn-primary"
             >
               {editId ? "Atualizar" : "Cadastrar"}
             </button>
           </div>
         </div>
 
-        <div className="table-container animate-fade-in bg-white rounded-2xl shadow-xl border border-indigo-100 overflow-hidden">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gradient-to-r from-indigo-50 to-purple-50">
-                <th className="table-cell text-center">Nome</th>
-                <th className="table-cell text-center">CPF</th>
-                <th className="table-cell text-center">Nascimento</th>
-                <th className="table-cell text-center">Convênio</th>
-                <th className="table-cell text-center">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {patients.map((patient) => (
-                <tr key={patient.id} className="hover:bg-indigo-50/50 transition-colors">
-                  <td className="table-cell text-center">{patient.name}</td>
-                  <td className="table-cell text-center">{(patient.cpf)}</td>
-                  <td className="table-cell text-center">
-                    {new Date(patient.birthDate).toLocaleDateString("pt-BR")}
-                  </td>
-                  <td className="table-cell text-center">
-                    {patient.healthInsurance?.name ?? "Sem convênio"}
-                  </td>
-                  <td className="table-cell text-center">
-                    <div className="flex justify-center gap-3">
-                      <button
-                        onClick={() => handleEdit(patient)}
-                        className="action-icon edit-icon hover:scale-110 transition-transform"
-                        title="Editar"
-                      >
-                        <PencilIcon className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(patient.id)}
-                        className="action-icon delete-icon hover:scale-110 transition-transform"
-                        title="Deletar"
-                      >
-                        <TrashIcon className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </td>
+        <div className="bg-white rounded-lg shadow-lg border border-indigo-100 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Nome
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    CPF
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Convênio
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Data de Nascimento
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Ações
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-
-          <div className="flex justify-between items-center mt-0">
-            <button
-              onClick={() => handlePageChange("prev")}
-              disabled={pagination.page <= 1}
-              className="btn-secondary disabled:opacity-50"
-            >
-              Página anterior
-            </button>
-
-            <span className="text-gray-600">
-              Página {pagination.page} de {pagination.totalPages}
-            </span>
-
-            <button
-              onClick={() => handlePageChange("next")}
-              disabled={pagination.page >= pagination.totalPages}
-              className="btn-secondary disabled:opacity-50"
-            >
-              Próxima página
-            </button>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {patients.map((patient) => (
+                  <tr key={patient.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
+                      {patient.name}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
+                      {patient.cpf}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
+                      {patient.healthInsurance ? (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                          {patient.healthInsurance.name}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-500">Sem convênio</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
+                      {new Date(patient.birthDate).toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900 text-center">
+                      <div className="flex justify-center space-x-2">
+                        <button
+                          onClick={() => handleEdit(patient)}
+                          className="action-icon edit-icon"
+                        >
+                          <PencilIcon className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(patient.id)}
+                          className="action-icon delete-icon"
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
 
+          {/* Paginação */}
+          <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+            <div className="flex-1 flex justify-between sm:hidden">
+              <button
+                onClick={() => handlePageChange("prev")}
+                disabled={pagination.page === 1}
+                className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Anterior
+              </button>
+              <button
+                onClick={() => handlePageChange("next")}
+                disabled={pagination.page === pagination.totalPages}
+                className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Próximo
+              </button>
+            </div>
+            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm text-gray-700">
+                  Página <span className="font-medium">{pagination.page}</span> de <span className="font-medium">{pagination.totalPages}</span>
+                </p>
+              </div>
+              <div>
+                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                  <button
+                    onClick={() => handlePageChange("prev")}
+                    disabled={pagination.page === 1}
+                    className="relative inline-flex items-center px-2 py-1 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Anterior
+                  </button>
+                  <button
+                    onClick={() => handlePageChange("next")}
+                    disabled={pagination.page === pagination.totalPages}
+                    className="relative inline-flex items-center px-2 py-1 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Próximo
+                  </button>
+                </nav>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </main>

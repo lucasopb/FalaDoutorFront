@@ -49,15 +49,15 @@ export default function ImportPage() {
     };
 
     return (
-        <main className="min-h-screen p-8 bg-gradient-to-br from-blue-50 to-indigo-50">
+        <main className="min-h-screen p-6 bg-gradient-to-br from-blue-50 to-indigo-50">
             <div className="max-w-2xl mx-auto">
-                <h1 className="text-4xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 mb-8">
+                <h1 className="title-xl text-center text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 mb-6">
                     Importar
                 </h1>
                 <div className="card">
-                    <form onSubmit={handleImport} className="space-y-6">
+                    <form onSubmit={handleImport} className="space-y-4">
                         <div>
-                            <label htmlFor="import-type" className="block font-medium mb-2">Tipo de Importação</label>
+                            <label htmlFor="import-type" className="block text-xs font-medium mb-1">Tipo de Importação</label>
                             <select
                                 id="import-type"
                                 className="input-field"
@@ -70,10 +70,10 @@ export default function ImportPage() {
                             </select>
                         </div>
                         <div>
-                            <label htmlFor="file-upload" className="block font-medium mb-2">Arquivo (.xlsx)</label>
+                            <label htmlFor="file-upload" className="block text-xs font-medium mb-1">Arquivo (.xlsx)</label>
                             <label htmlFor="file-upload" className="input-field flex items-center justify-between cursor-pointer">
-                                <span className="text-slate-500 truncate pr-4">{file ? file.name : "Nenhum arquivo selecionado"}</span>
-                                <span className="btn-secondary !py-1 !px-3 whitespace-nowrap">Procurar</span>
+                                <span className="text-slate-500 truncate pr-4 text-sm">{file ? file.name : "Nenhum arquivo selecionado"}</span>
+                                <span className="btn-secondary !py-1 !px-2 whitespace-nowrap text-xs">Procurar</span>
                             </label>
                             <input
                                 id="file-upload"
@@ -93,35 +93,35 @@ export default function ImportPage() {
                     </form>
                 </div>
                 {error && (
-                    <div className="mt-6 p-4 rounded-md bg-red-50 text-red-700 border border-red-200 animate-fade-in">{error}</div>
+                    <div className="mt-4 p-3 rounded-md bg-red-50 text-red-700 border border-red-200 animate-fade-in text-sm">{error}</div>
                 )}
                 {result && (
-                    <div className="mt-6 card animate-fade-in">
-                        <h2 className="text-xl font-semibold mb-4">Resultado da Importação</h2>
-                        <div className="p-4 rounded-lg border mb-4">{result.message}</div>
+                    <div className="mt-4 card animate-fade-in">
+                        <h2 className="title-md mb-3">Resultado da Importação</h2>
+                        <div className="p-3 rounded-lg border mb-3 text-sm">{result.message}</div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                            <div className="p-4 rounded-lg bg-green-50 border border-green-200">
-                                <div className="font-medium text-green-800">Sucesso</div>
-                                <div className="text-3xl font-bold text-green-900">{result.result?.importedCount || 0}</div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                            <div className="p-3 rounded-lg bg-green-50 border border-green-200">
+                                <div className="font-medium text-green-800 text-xs">Sucesso</div>
+                                <div className="text-2xl font-bold text-green-900">{result.result?.importedCount || 0}</div>
                             </div>
-                            <div className="p-4 rounded-lg bg-red-50 border border-red-200">
-                                <div className="font-medium text-red-800">Falhas</div>
-                                <div className="text-3xl font-bold text-red-900">{result.result?.failedCount || 0}</div>
+                            <div className="p-3 rounded-lg bg-red-50 border border-red-200">
+                                <div className="font-medium text-red-800 text-xs">Falhas</div>
+                                <div className="text-2xl font-bold text-red-900">{result.result?.failedCount || 0}</div>
                             </div>
                         </div>
 
                         {result.result?.failed?.length > 0 && (
                             <div>
-                                <h3 className="font-semibold text-lg mb-2">Detalhes das Falhas</h3>
-                                <ul className="space-y-3">
+                                <h3 className="font-semibold text-sm mb-2">Detalhes das Falhas</h3>
+                                <ul className="space-y-2">
                                     {result.result.failed.map((fail: any, idx: number) => (
-                                        <li key={idx} className="p-3 rounded-md bg-gray-50 border border-gray-200">
-                                            <div className="text-sm font-medium">Linha do arquivo com erro:</div>
+                                        <li key={idx} className="p-2 rounded-md bg-gray-50 border border-gray-200">
+                                            <div className="text-xs font-medium">Linha do arquivo com erro:</div>
                                             <code className="text-xs bg-gray-200 p-1 rounded-md font-mono block my-1 overflow-x-auto">
                                                 {JSON.stringify(fail.data)}
                                             </code>
-                                            <div className="text-sm text-red-700 mt-1">
+                                            <div className="text-xs text-red-700 mt-1">
                                                 <span className="font-semibold">Motivo:</span> {
                                                     Array.isArray(fail.errors)
                                                         ? fail.errors.map((e: any) => e.message || JSON.stringify(e)).join(", ")

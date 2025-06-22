@@ -35,44 +35,46 @@ body {
   min-height: 100vh;
   color: var(--text-primary);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 @layer components {
   .btn-primary {
-    @apply px-4 py-2 rounded-lg bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2;
+    @apply px-3 py-1.5 rounded-md bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-1 text-sm font-medium;
   }
 
   .btn-secondary {
-    @apply px-4 py-2 rounded-lg bg-white text-[var(--text-primary)] border border-[var(--border-color)] hover:bg-[var(--background-hover)] transition-colors duration-200;
+    @apply px-3 py-1.5 rounded-md bg-white text-[var(--text-primary)] border border-[var(--border-color)] hover:bg-[var(--background-hover)] transition-colors duration-200 text-sm;
   }
 
   .btn-danger {
-    @apply px-4 py-2 bg-[var(--danger)] text-white rounded-lg hover:bg-[var(--danger-hover)] transition-colors duration-200 font-medium;
+    @apply px-3 py-1.5 bg-[var(--danger)] text-white rounded-md hover:bg-[var(--danger-hover)] transition-colors duration-200 font-medium text-sm;
   }
 
   .input-field {
-    @apply w-full px-4 py-2 rounded-lg border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all duration-200 bg-white;
+    @apply w-full px-3 py-1.5 rounded-md border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all duration-200 bg-white text-sm;
   }
 
   .card {
-    @apply bg-[var(--background-card)] rounded-xl p-6 shadow-[var(--shadow-md)] border border-[var(--border-color)];
+    @apply bg-[var(--background-card)] rounded-lg p-4 shadow-[var(--shadow-md)] border border-[var(--border-color)];
   }
 
   .table-container {
-    @apply overflow-hidden rounded-xl border border-[var(--border-color)] shadow-[var(--shadow-md)] bg-white;
+    @apply overflow-hidden rounded-lg border border-[var(--border-color)] shadow-[var(--shadow-md)] bg-white;
   }
 
   .table-header {
-    @apply bg-[var(--background-hover)] text-[var(--text-secondary)] font-medium text-sm uppercase tracking-wider;
+    @apply bg-[var(--background-hover)] text-[var(--text-secondary)] font-medium text-xs uppercase tracking-wider;
   }
 
   .table-cell {
-    @apply px-6 py-4 text-[var(--text-primary)] border-b border-[var(--border-color)];
+    @apply px-4 py-3 text-[var(--text-primary)] border-b border-[var(--border-color)] text-sm;
   }
 
   /* Ícones de ação */
   .action-icon {
-    @apply p-2 rounded-lg transition-colors duration-200 cursor-pointer;
+    @apply p-1.5 rounded-md transition-colors duration-200 cursor-pointer;
   }
 
   .edit-icon {
@@ -81,6 +83,40 @@ body {
 
   .delete-icon {
     @apply text-[var(--danger)] hover:bg-[var(--danger)] hover:text-white;
+  }
+
+  /* Classes utilitárias para títulos responsivos */
+  .title-xl {
+    @apply text-4xl font-bold;
+  }
+
+  .title-lg {
+    @apply text-2xl font-semibold;
+  }
+
+  .title-md {
+    @apply text-xl font-semibold;
+  }
+
+  .title-sm {
+    @apply text-lg font-medium;
+  }
+
+  /* Classes para espaçamentos responsivos */
+  .section-spacing {
+    @apply mb-6;
+  }
+
+  .card-spacing {
+    @apply p-4;
+  }
+
+  .button-spacing {
+    @apply px-3 py-1.5;
+  }
+
+  .input-spacing {
+    @apply px-3 py-1.5;
   }
 }
 
@@ -122,11 +158,77 @@ body {
 
 /* Responsividade */
 @media (max-width: 768px) {
+  body {
+    font-size: 13px;
+  }
+
   .table-container {
     @apply overflow-x-auto;
   }
 
   .table-cell {
-    @apply px-4 py-3;
+    @apply px-3 py-2;
+  }
+
+  .title-xl {
+    @apply text-3xl;
+  }
+
+  .title-lg {
+    @apply text-xl;
+  }
+
+  .title-md {
+    @apply text-lg;
+  }
+
+  .title-sm {
+    @apply text-base;
+  }
+
+  .card-spacing {
+    @apply p-3;
+  }
+
+  .button-spacing {
+    @apply px-2.5 py-1;
+  }
+
+  .input-spacing {
+    @apply px-2.5 py-1;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 12px;
+  }
+
+  .title-xl {
+    @apply text-2xl;
+  }
+
+  .title-lg {
+    @apply text-lg;
+  }
+
+  .title-md {
+    @apply text-base;
+  }
+
+  .title-sm {
+    @apply text-sm;
+  }
+
+  .card-spacing {
+    @apply p-2;
+  }
+
+  .button-spacing {
+    @apply px-2 py-1;
+  }
+
+  .input-spacing {
+    @apply px-2 py-1;
   }
 }

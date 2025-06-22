@@ -34,7 +34,7 @@ export default function HealthInsurancePage() {
     setForm((prev) => ({
       ...prev,
       [name]: name === "baseValue" ? parseFloat(value) || 0 : value,
-    }));    
+    }));
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
@@ -87,8 +87,8 @@ export default function HealthInsurancePage() {
   };
 
   const formatCpf = (cpf: string) => {
-  const cleaned = cpf.replace(/\D/g, '').padEnd(11, '0');
-  return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+    const cleaned = cpf.replace(/\D/g, '').padEnd(11, '0');
+    return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
   };
 
   const handlePageChange = (direction: "next" | "prev") => {
@@ -103,25 +103,25 @@ export default function HealthInsurancePage() {
   };
 
   return (
-    <main className="min-h-screen p-8 bg-gradient-to-br from-green-50 to-emerald-50">
+    <main className="min-h-screen p-6 bg-gradient-to-br from-green-50 to-emerald-50">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-600">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="title-xl text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-600">
             Gestão de Planos de Saúde
           </h1>
-          <span className="text-lg text-gray-600">
+          <span className="text-sm text-gray-600">
             Total: {pagination.total}
           </span>
         </div>
 
-        <div className="card mb-8 animate-fade-in bg-white rounded-2xl p-8 shadow-xl border border-green-100">
-          <h2 className="text-2xl font-semibold mb-6 text-gray-800">
+        <div className="card mb-6 animate-fade-in bg-white rounded-lg p-6 shadow-lg border border-green-100">
+          <h2 className="title-md mb-4 text-gray-800">
             {editId ? "Editar Plano" : "Cadastrar Novo Plano"}
           </h2>
 
           <div className="flex flex-wrap">
             <div className="flex flex-col w-full md:w-1/3 p-2 group">
-              <label className="block text-sm font-medium text-gray-600 mb-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1">
                 Nome
               </label>
               <input
@@ -132,11 +132,11 @@ export default function HealthInsurancePage() {
                 className="input-field"
                 placeholder="Nome do plano"
               />
-              {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
+              {errors.name && <p className="text-xs text-red-500">{errors.name}</p>}
             </div>
 
             <div className="flex flex-col w-full md:w-1/3 p-2 group">
-              <label className="block text-sm font-medium text-gray-600 mb-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1">
                 Código
               </label>
               <input
@@ -153,11 +153,11 @@ export default function HealthInsurancePage() {
                 className="input-field"
                 placeholder="Código do plano"
               />
-              {errors.code && <p className="text-sm text-red-500">{errors.code}</p>}
+              {errors.code && <p className="text-xs text-red-500">{errors.code}</p>}
             </div>
 
             <div className="flex flex-col w-full md:w-1/3 p-2 group">
-              <label className="block text-sm font-medium text-gray-600 mb-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1">
                 Valor Base (R$)
               </label>
               <input
@@ -175,12 +175,12 @@ export default function HealthInsurancePage() {
                 placeholder="0.00"
               />
               {errors.baseValue && (
-                <p className="text-sm text-red-500">{errors.baseValue}</p>
+                <p className="text-xs text-red-500">{errors.baseValue}</p>
               )}
             </div>
           </div>
 
-          <div className="flex justify-end gap-4 mt-6">
+          <div className="flex justify-end gap-3 mt-4">
             {editId && (
               <button
                 onClick={() => {
@@ -199,90 +199,124 @@ export default function HealthInsurancePage() {
           </div>
         </div>
 
-        <div className="table-container animate-fade-in bg-white rounded-2xl shadow-xl border border-green-100 overflow-hidden">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gradient-to-r from-green-50 to-emerald-50">
-                <th className="table-cell">Nome</th>
-                <th className="table-cell">Código</th>
-                <th className="table-cell">Valor Base</th>
-                <th className="table-cell text-center">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {insurances.map((item) => (
-                <React.Fragment key={item.id}>
-                  <tr className="hover:bg-green-50 transition-colors">
-                    <td className="table-cell text-center">{item.name}</td>
-                    <td className="table-cell text-center">{item.code}</td>
-                    <td className="table-cell text-center">
-                      R$ {Number(item.baseValue).toFixed(2)}
-                    </td>
-                    <td className="table-cell text-center">
-                      <div className="flex justify-center gap-3">
-                        <button
-                          onClick={() => handleEdit(item)}
-                          className="action-icon edit-icon"
-                        >
-                          <PencilIcon className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(item.id)}
-                          className="action-icon delete-icon"
-                        >
-                          <TrashIcon className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-
-                  {/* Lista de pacientes */}
-                  {item.patients && item.patients.length > 0 && (
-                    <tr>
-                      <td colSpan={4} className="table-cell bg-emerald-50 text-sm p-4">
-                        <div>
-                          <p className="font-semibold mb-2 text-emerald-700">
-                            Pacientes vinculados:
-                          </p>
-                          <div className="flex flex-wrap gap-4">
-                            {item.patients.map((patient) => (
-                              <div
-                                key={patient.id}
-                                className="p-4 bg-green-50 border border-green-200 rounded-xl shadow-sm"
-                              >
-                                <p className="font-semibold text-gray-700">{patient.name}</p>
-                                <p className="text-gray-500 text-sm">CPF: {formatCpf(patient.cpf)}</p>
-                              </div>
-                            ))}
-                          </div>
+        <div className="bg-white rounded-lg shadow-lg border border-green-100 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Nome
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Código
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Valor Base
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Ações
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {insurances.map((item) => (
+                  <React.Fragment key={item.id}>
+                    <tr className="hover:bg-green-50 transition-colors">
+                      <td className="px-4 py-3 text-sm text-gray-900 text-center">{item.name}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900 text-center">{item.code}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900 text-center">
+                        R$ {Number(item.baseValue).toFixed(2)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900 text-center">
+                        <div className="flex justify-center space-x-2">
+                          <button
+                            onClick={() => handleEdit(item)}
+                            className="action-icon edit-icon"
+                          >
+                            <PencilIcon className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(item.id)}
+                            className="action-icon delete-icon"
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </button>
                         </div>
                       </td>
                     </tr>
-                  )}
-                </React.Fragment>
-              ))}
-            </tbody>
-          </table>
-          <div className="flex justify-between items-center mt-0">
-            <button
-              onClick={() => handlePageChange("prev")}
-              disabled={pagination.page <= 1}
-              className="btn-secondary disabled:opacity-50"
-            >
-              Página anterior
-            </button>
 
-            <span className="text-gray-600">
-              Página {pagination.page} de {pagination.totalPages}
-            </span>
+                    {/* Lista de pacientes */}
+                    {item.patients && item.patients.length > 0 && (
+                      <tr>
+                        <td colSpan={4} className="px-4 py-3 bg-emerald-50 text-sm">
+                          <div>
+                            <p className="font-semibold mb-2 text-emerald-700 text-xs">
+                              Pacientes vinculados:
+                            </p>
+                            <div className="flex flex-wrap gap-3">
+                              {item.patients.map((patient) => (
+                                <div
+                                  key={patient.id}
+                                  className="p-3 bg-green-50 border border-green-200 rounded-lg shadow-sm"
+                                >
+                                  <p className="font-semibold text-gray-700 text-xs">{patient.name}</p>
+                                  <p className="text-gray-500 text-xs">CPF: {formatCpf(patient.cpf)}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-            <button
-              onClick={() => handlePageChange("next")}
-              disabled={pagination.page >= pagination.totalPages}
-              className="btn-secondary disabled:opacity-50"
-            >
-              Próxima página
-            </button>
+          {/* Paginação */}
+          <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+            <div className="flex-1 flex justify-between sm:hidden">
+              <button
+                onClick={() => handlePageChange("prev")}
+                disabled={pagination.page === 1}
+                className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Anterior
+              </button>
+              <button
+                onClick={() => handlePageChange("next")}
+                disabled={pagination.page === pagination.totalPages}
+                className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Próximo
+              </button>
+            </div>
+            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm text-gray-700">
+                  Página <span className="font-medium">{pagination.page}</span> de <span className="font-medium">{pagination.totalPages}</span>
+                </p>
+              </div>
+              <div>
+                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                  <button
+                    onClick={() => handlePageChange("prev")}
+                    disabled={pagination.page === 1}
+                    className="relative inline-flex items-center px-2 py-1 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Anterior
+                  </button>
+                  <button
+                    onClick={() => handlePageChange("next")}
+                    disabled={pagination.page === pagination.totalPages}
+                    className="relative inline-flex items-center px-2 py-1 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Próximo
+                  </button>
+                </nav>
+              </div>
+            </div>
           </div>
         </div>
       </div>

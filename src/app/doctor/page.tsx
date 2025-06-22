@@ -238,27 +238,27 @@ export default function HomePage() {
   };
 
   return (
-    <main className="min-h-screen p-8 bg-gradient-to-br from-blue-50 to-indigo-50">
+    <main className="min-h-screen p-6 bg-gradient-to-br from-blue-50 to-indigo-50">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="title-xl text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
             Gestão de Médicos
           </h1>
           <div className="flex items-center gap-4">
-            <span className="text-lg text-gray-600">
+            <span className="text-sm text-gray-600">
               Total de médicos: {pagination.total}
             </span>
           </div>
         </div>
 
-        <div className="card mb-8 animate-fade-in bg-white rounded-2xl p-8 shadow-xl border border-blue-100">
-          <h2 className="text-2xl font-semibold mb-6 text-gray-800">
+        <div className="card mb-6 animate-fade-in bg-white rounded-lg p-6 shadow-lg border border-blue-100">
+          <h2 className="title-md mb-4 text-gray-800">
             {editId ? "Editar Médico" : "Cadastrar Novo Médico"}
           </h2>
 
           <div className="flex flex-wrap">
             <div className="flex flex-col w-full md:w-1/4 p-2 group">
-              <label className="block text-sm font-medium text-gray-600 mb-2 group-hover:text-gray-800 transition-colors">
+              <label className="block text-xs font-medium text-gray-600 mb-1 group-hover:text-gray-800 transition-colors">
                 Nome
               </label>
               <input
@@ -269,11 +269,11 @@ export default function HomePage() {
                 className="input-field w-70 group-hover:border-blue-300 transition-colors"
                 placeholder="Digite o nome do médico"
               />
-              {errors.name && <p className="text-sm text-red-500 mt-1">{errors.name}</p>}
+              {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
             </div>
 
             <div className="flex flex-col w-full md:w-1/4 p-2 group">
-              <label className="block text-sm font-medium text-gray-600 mb-2 group-hover:text-gray-800 transition-colors">
+              <label className="block text-xs font-medium text-gray-600 mb-1 group-hover:text-gray-800 transition-colors">
                 CPF
               </label>
               <input
@@ -296,11 +296,11 @@ export default function HomePage() {
                 className="input-field w-70 group-hover:border-indigo-300 transition-colors"
                 placeholder="000.000.000-00"
               />
-              {errors.cpf && <p className="text-sm text-red-500 mt-1">{errors.cpf}</p>}
+              {errors.cpf && <p className="text-xs text-red-500 mt-1">{errors.cpf}</p>}
             </div>
 
             <div className="flex flex-col w-full md:w-1/4 p-2 group">
-              <label className="block text-sm font-medium text-gray-600 mb-2 group-hover:text-gray-800 transition-colors">
+              <label className="block text-xs font-medium text-gray-600 mb-1 group-hover:text-gray-800 transition-colors">
                 CRM
               </label>
               <input
@@ -314,11 +314,11 @@ export default function HomePage() {
                 className="input-field w-70 group-hover:border-blue-300 transition-colors"
                 placeholder="000000"
               />
-              {errors.crm && <p className="text-sm text-red-500 mt-1">{errors.crm}</p>}
+              {errors.crm && <p className="text-xs text-red-500 mt-1">{errors.crm}</p>}
             </div>
 
             <div className="flex flex-col w-full md:w-1/4 p-2 group">
-              <label className="block text-sm font-medium text-gray-600 mb-2 group-hover:text-gray-800 transition-colors">
+              <label className="block text-xs font-medium text-gray-600 mb-1 group-hover:text-gray-800 transition-colors">
                 Data de Nascimento
               </label>
               <input
@@ -329,71 +329,71 @@ export default function HomePage() {
                 className="input-field w-70 group-hover:border-blue-300 transition-colors"
               />
               {errors.birthDate && (
-                <p className="text-sm text-red-500 mt-1">{errors.birthDate}</p>
+                <p className="text-xs text-red-500 mt-1">{errors.birthDate}</p>
               )}
             </div>
 
             <div className="flex flex-col w-full p-2 group">
-              <label className="block text-sm font-medium text-gray-600 mb-2 group-hover:text-gray-800 transition-colors">
+              <label className="block text-xs font-medium text-gray-600 mb-1 group-hover:text-gray-800 transition-colors">
                 Planos de Saúde
               </label>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {healthInsurances.map((hi) => (
-                  <label key={hi.id} className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors cursor-pointer">
+                  <label key={hi.id} className="flex items-center space-x-2 p-2 rounded-md border border-gray-200 hover:border-blue-300 transition-colors cursor-pointer">
                     <input
                       type="checkbox"
                       name="healthInsurances"
                       value={hi.id}
                       checked={selectedHealthInsurances.includes(hi.id)}
                       onChange={handleChange}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     />
-                    <span className="text-sm text-gray-700">{hi.name} ({hi.code})</span>
+                    <span className="text-xs text-gray-700">{hi.name} ({hi.code})</span>
                   </label>
                 ))}
               </div>
             </div>
           </div>
 
-          <div className="flex justify-end gap-4 mt-6">
+          <div className="flex justify-end gap-3 mt-4">
             {editId && (
               <button
                 onClick={handleCancel}
-                className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transform transition hover:scale-105"
+                className="btn-secondary"
               >
                 Cancelar
               </button>
             )}
             <button
               onClick={handleSubmit}
-              className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform transition hover:scale-105"
+              className="btn-primary"
             >
               {editId ? "Atualizar" : "Cadastrar"}
             </button>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl border border-blue-100 overflow-hidden">
+        <div className="bg-white rounded-lg shadow-lg border border-blue-100 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Nome
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     CPF
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     CRM
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Data de Nascimento
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Planos de Saúde
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Ações
                   </th>
                 </tr>
@@ -401,23 +401,23 @@ export default function HomePage() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {doctors.map((doctor) => (
                   <tr key={doctor.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
                       {doctor.name}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
                       {doctor.cpf}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
                       {doctor.crm}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
                       {new Date(doctor.birthDate).toLocaleDateString()}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
+                    <td className="px-4 py-3 text-sm text-gray-900">
                       <div className="flex flex-col items-center gap-1">
                         <button
                           onClick={() => handleExpandDoctor(doctor.id)}
-                          className="text-blue-600 hover:text-blue-800 underline text-sm"
+                          className="text-blue-600 hover:text-blue-800 underline text-xs"
                         >
                           {expandedDoctors.includes(doctor.id) ? 'Ocultar planos' : 'Ver planos'}
                         </button>
@@ -427,31 +427,31 @@ export default function HomePage() {
                               doctorHealthInsurances[doctor.id].map((hi) => (
                                 <span
                                   key={hi.id}
-                                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
                                 >
-                                  {hi.name} ({hi.code})
+                                  {hi.name}
                                 </span>
                               ))
                             ) : (
-                              <span className="text-gray-400 text-xs">Nenhum plano cadastrado</span>
+                              <span className="text-xs text-gray-500">Nenhum plano associado</span>
                             )}
                           </div>
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
+                    <td className="px-4 py-3 text-sm text-gray-900 text-center">
                       <div className="flex justify-center space-x-2">
                         <button
                           onClick={() => handleEdit(doctor)}
-                          className="text-indigo-600 hover:text-indigo-900"
+                          className="action-icon edit-icon"
                         >
-                          <PencilIcon className="h-5 w-5" />
+                          <PencilIcon className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(doctor.id)}
-                          className="text-red-600 hover:text-red-900"
+                          className="action-icon delete-icon"
                         >
-                          <TrashIcon className="h-5 w-5" />
+                          <TrashIcon className="h-4 w-4" />
                         </button>
                       </div>
                     </td>
@@ -461,30 +461,49 @@ export default function HomePage() {
             </table>
           </div>
 
-          <div className="px-6 py-4 flex justify-between items-center bg-gray-50">
-            <button
-              onClick={() => handlePageChange("prev")}
-              disabled={pagination.page === 1}
-              className={`px-4 py-2 text-sm rounded-lg ${pagination.page === 1
-                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                : "bg-blue-600 text-white hover:bg-blue-700"
-                }`}
-            >
-              Anterior
-            </button>
-            <span className="text-sm text-gray-600">
-              Página {pagination.page} de {pagination.totalPages}
-            </span>
-            <button
-              onClick={() => handlePageChange("next")}
-              disabled={pagination.page === pagination.totalPages}
-              className={`px-4 py-2 text-sm rounded-lg ${pagination.page === pagination.totalPages
-                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                : "bg-blue-600 text-white hover:bg-blue-700"
-                }`}
-            >
-              Próxima
-            </button>
+          {/* Paginação */}
+          <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+            <div className="flex-1 flex justify-between sm:hidden">
+              <button
+                onClick={() => handlePageChange("prev")}
+                disabled={pagination.page === 1}
+                className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Anterior
+              </button>
+              <button
+                onClick={() => handlePageChange("next")}
+                disabled={pagination.page === pagination.totalPages}
+                className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Próximo
+              </button>
+            </div>
+            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm text-gray-700">
+                  Página <span className="font-medium">{pagination.page}</span> de <span className="font-medium">{pagination.totalPages}</span>
+                </p>
+              </div>
+              <div>
+                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                  <button
+                    onClick={() => handlePageChange("prev")}
+                    disabled={pagination.page === 1}
+                    className="relative inline-flex items-center px-2 py-1 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Anterior
+                  </button>
+                  <button
+                    onClick={() => handlePageChange("next")}
+                    disabled={pagination.page === pagination.totalPages}
+                    className="relative inline-flex items-center px-2 py-1 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Próximo
+                  </button>
+                </nav>
+              </div>
+            </div>
           </div>
         </div>
       </div>

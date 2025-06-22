@@ -227,15 +227,15 @@ export default function ReportPage() {
   };
 
   return (
-    <main className="min-h-screen p-8 bg-gradient-to-br from-blue-50 to-indigo-50">
+    <main className="min-h-screen p-6 bg-gradient-to-br from-blue-50 to-indigo-50">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+        <h1 className="title-xl mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
           Relatórios
         </h1>
 
-        <div className="card p-6 mb-6 bg-white rounded-2xl shadow-xl border border-blue-100">
-          <div className="mb-4">
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Entidade</label>
+        <div className="card p-4 mb-4 bg-white rounded-lg shadow-lg border border-blue-100">
+          <div className="mb-3">
+            <label className="block text-xs font-semibold text-gray-700 mb-1">Entidade</label>
             <select
               value={entity}
               onChange={handleEntityChange}
@@ -247,11 +247,11 @@ export default function ReportPage() {
             </select>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {renderFilterFields()}
           </div>
 
-          <div className="mt-4">
+          <div className="mt-3">
             <button onClick={handleGenerate} className="btn-primary">
               Gerar Relatório
             </button>
@@ -259,60 +259,85 @@ export default function ReportPage() {
         </div>
 
         {hasGenerated && data.length > 0 && (
-          <div className="bg-white p-6 rounded-2xl shadow-xl border border-blue-100">
-            <h2 className="text-xl font-semibold mb-4 text-gray-700">Resultados</h2>
-            <p className="text-sm text-gray-600 mb-2">
+          <div className="bg-white p-4 rounded-lg shadow-lg border border-blue-100">
+            <h2 className="title-md mb-3 text-gray-700">Resultados</h2>
+            <p className="text-xs text-gray-600 mb-2">
               Total de resultados: <span className="font-medium">{pagination.total}</span>
             </p>
-            <table className="w-full text-left table-auto border-collapse">
-              <thead>
-                <tr className="border-b">
-                  {Object.keys(data[0])
-                    .filter((key) => key !== "id")
-                    .map((key) => (
-                      <th key={key} className="py-2 px-4 font-medium text-gray-600 capitalize">
-                        {key}
-                      </th>
-                    ))}
-                </tr>
-              </thead>
-              <tbody>
-                {data.map((item, i) => (
-                  <tr key={i} className="border-b hover:bg-gray-50">
-                    {Object.entries(item)
-                      .filter(([key]) => key !== "id")
-                      .map(([key, value], j) => (
-                        <td key={j} className="py-2 px-4 text-sm text-gray-700">
-                          {key === "healthInsurance"
-                            ? (value && typeof value === "object" && "name" in value
-                              ? (value as { name: string }).name
-                              : "Sem convênio")
-                            : String(value)}
-                        </td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left table-auto border-collapse">
+                <thead>
+                  <tr className="border-b">
+                    {Object.keys(data[0])
+                      .filter((key) => key !== "id")
+                      .map((key) => (
+                        <th key={key} className="py-2 px-3 font-medium text-gray-600 capitalize text-xs">
+                          {key}
+                        </th>
                       ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {data.map((item, index) => (
+                    <tr key={index} className="border-b hover:bg-gray-50">
+                      {Object.entries(item)
+                        .filter(([key]) => key !== "id")
+                        .map(([key, value]) => (
+                          <td key={key} className="py-2 px-3 text-sm">
+                            {typeof value === "string" && value.includes("T") && !isNaN(Date.parse(value))
+                              ? new Date(value).toLocaleDateString()
+                              : String(value || '')}
+                          </td>
+                        ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-            <div className="flex justify-between mt-4">
-              <button
-                onClick={() => handlePageChange("prev")}
-                disabled={pagination.page <= 1}
-                className="btn-secondary"
-              >
-                Anterior
-              </button>
-              <span className="text-sm text-gray-600">
-                Página {pagination.page} de {pagination.totalPages}
-              </span>
-              <button
-                onClick={() => handlePageChange("next")}
-                disabled={pagination.page >= pagination.totalPages}
-                className="btn-secondary"
-              >
-                Próxima
-              </button>
+            {/* Paginação */}
+            <div className="mt-4 flex items-center justify-between">
+              <div className="flex-1 flex justify-between sm:hidden">
+                <button
+                  onClick={() => handlePageChange("prev")}
+                  disabled={pagination.page === 1}
+                  className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Anterior
+                </button>
+                <button
+                  onClick={() => handlePageChange("next")}
+                  disabled={pagination.page === pagination.totalPages}
+                  className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Próximo
+                </button>
+              </div>
+              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm text-gray-700">
+                    Página <span className="font-medium">{pagination.page}</span> de <span className="font-medium">{pagination.totalPages}</span>
+                  </p>
+                </div>
+                <div>
+                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <button
+                      onClick={() => handlePageChange("prev")}
+                      disabled={pagination.page === 1}
+                      className="relative inline-flex items-center px-2 py-1 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Anterior
+                    </button>
+                    <button
+                      onClick={() => handlePageChange("next")}
+                      disabled={pagination.page === pagination.totalPages}
+                      className="relative inline-flex items-center px-2 py-1 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Próximo
+                    </button>
+                  </nav>
+                </div>
+              </div>
             </div>
           </div>
         )}
