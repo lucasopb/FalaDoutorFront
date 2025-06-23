@@ -11,6 +11,7 @@ import {
   getHealthInsurance
 } from "@/lib/api";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import Loading from "@/components/Loading";
 
 export default function HomePage() {
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -19,11 +20,14 @@ export default function HomePage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [healthInsurances, setHealthInsurances] = useState<HealthInsurance[]>([]);
   const [pagination, setPagination] = useState({ total: 0, limit: 5, page: 1, totalPages: 0 });
+  const [loading, setLoading] = useState(false);
 
   const loadPatients = async (limit = pagination.limit, page = pagination.page) => {
+    setLoading(true);
     const res = await getPatients(limit, page);
     setPatients(res.data);
     setPagination(res.pagination);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -248,67 +252,71 @@ export default function HomePage() {
 
         <div className="bg-white rounded-lg shadow-lg border border-indigo-100 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Nome
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    CPF
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Convênio
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Data de Nascimento
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ações
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {patients.map((patient) => (
-                  <tr key={patient.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
-                      {patient.name}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
-                      {patient.cpf}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
-                      {patient.healthInsurance ? (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                          {patient.healthInsurance.name}
-                        </span>
-                      ) : (
-                        <span className="text-xs text-gray-500">Sem convênio</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
-                      {new Date(patient.birthDate).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900 text-center">
-                      <div className="flex justify-center space-x-2">
-                        <button
-                          onClick={() => handleEdit(patient)}
-                          className="action-icon edit-icon"
-                        >
-                          <PencilIcon className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(patient.id)}
-                          className="action-icon delete-icon"
-                        >
-                          <TrashIcon className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
+            {loading ? (
+              <Loading />
+            ) : (
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Nome
+                    </th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      CPF
+                    </th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Convênio
+                    </th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Data de Nascimento
+                    </th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Ações
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {patients.map((patient) => (
+                    <tr key={patient.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
+                        {patient.name}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
+                        {patient.cpf}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
+                        {patient.healthInsurance ? (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                            {patient.healthInsurance.name}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-500">Sem convênio</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
+                        {new Date(patient.birthDate).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900 text-center">
+                        <div className="flex justify-center space-x-2">
+                          <button
+                            onClick={() => handleEdit(patient)}
+                            className="action-icon edit-icon"
+                          >
+                            <PencilIcon className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(patient.id)}
+                            className="action-icon delete-icon"
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
 
           {/* Paginação */}

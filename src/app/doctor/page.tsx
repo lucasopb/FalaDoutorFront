@@ -15,6 +15,7 @@ import {
   deleteDoctorHealthInsurance,
 } from "@/lib/api";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import Loading from "@/components/Loading";
 
 interface DoctorHealthInsurance {
   id: string;
@@ -35,20 +36,23 @@ export default function HomePage() {
   const [form, setForm] = useState<Partial<Doctor>>({});
   const [editId, setEditId] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
 
   const loadData = async (limit = pagination.limit, page = pagination.page) => {
+    setLoading(true);
     const res = await getDoctors(limit, page);
     setDoctors(res.data);
     setPagination(res.pagination);
+    setLoading(false);
   };
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       const [doctorsRes, healthInsurancesRes] = await Promise.all([
         getDoctors(pagination.limit, pagination.page),
         getHealthInsurance(100, 1), // Get all health insurances
       ]);
-
       setDoctors(doctorsRes.data);
       setPagination((prev) => ({
         ...prev,
@@ -56,8 +60,8 @@ export default function HomePage() {
         totalPages: doctorsRes.pagination.totalPages,
       }));
       setHealthInsurances(healthInsurancesRes.data);
+      setLoading(false);
     };
-
     fetchData();
   }, [pagination.page, pagination.limit]);
 
@@ -375,90 +379,94 @@ export default function HomePage() {
 
         <div className="bg-white rounded-lg shadow-lg border border-blue-100 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Nome
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    CPF
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    CRM
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Data de Nascimento
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Planos de Saúde
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ações
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {doctors.map((doctor) => (
-                  <tr key={doctor.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
-                      {doctor.name}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
-                      {doctor.cpf}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
-                      {doctor.crm}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
-                      {new Date(doctor.birthDate).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      <div className="flex flex-col items-center gap-1">
-                        <button
-                          onClick={() => handleExpandDoctor(doctor.id)}
-                          className="text-blue-600 hover:text-blue-800 underline text-xs"
-                        >
-                          {expandedDoctors.includes(doctor.id) ? 'Ocultar planos' : 'Ver planos'}
-                        </button>
-                        {expandedDoctors.includes(doctor.id) && (
-                          <div className="flex flex-col gap-1 mt-1 items-center">
-                            {doctorHealthInsurances[doctor.id]?.length > 0 ? (
-                              doctorHealthInsurances[doctor.id].map((hi) => (
-                                <span
-                                  key={hi.id}
-                                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                                >
-                                  {hi.name}
-                                </span>
-                              ))
-                            ) : (
-                              <span className="text-xs text-gray-500">Nenhum plano associado</span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900 text-center">
-                      <div className="flex justify-center space-x-2">
-                        <button
-                          onClick={() => handleEdit(doctor)}
-                          className="action-icon edit-icon"
-                        >
-                          <PencilIcon className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(doctor.id)}
-                          className="action-icon delete-icon"
-                        >
-                          <TrashIcon className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
+            {loading ? (
+              <Loading />
+            ) : (
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Nome
+                    </th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      CPF
+                    </th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      CRM
+                    </th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Data de Nascimento
+                    </th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Planos de Saúde
+                    </th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Ações
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {doctors.map((doctor) => (
+                    <tr key={doctor.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
+                        {doctor.name}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
+                        {doctor.cpf}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
+                        {doctor.crm}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
+                        {new Date(doctor.birthDate).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        <div className="flex flex-col items-center gap-1">
+                          <button
+                            onClick={() => handleExpandDoctor(doctor.id)}
+                            className="text-blue-600 hover:text-blue-800 underline text-xs"
+                          >
+                            {expandedDoctors.includes(doctor.id) ? 'Ocultar planos' : 'Ver planos'}
+                          </button>
+                          {expandedDoctors.includes(doctor.id) && (
+                            <div className="flex flex-col gap-1 mt-1 items-center">
+                              {doctorHealthInsurances[doctor.id]?.length > 0 ? (
+                                doctorHealthInsurances[doctor.id].map((hi) => (
+                                  <span
+                                    key={hi.id}
+                                    className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                                  >
+                                    {hi.name}
+                                  </span>
+                                ))
+                              ) : (
+                                <span className="text-xs text-gray-500">Nenhum plano associado</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900 text-center">
+                        <div className="flex justify-center space-x-2">
+                          <button
+                            onClick={() => handleEdit(doctor)}
+                            className="action-icon edit-icon"
+                          >
+                            <PencilIcon className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(doctor.id)}
+                            className="action-icon delete-icon"
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
 
           {/* Paginação */}

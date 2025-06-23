@@ -5,6 +5,7 @@ import { generateReport } from "@/lib/api";
 import { getHealthInsurance } from "@/lib/api";
 import { HealthInsurance } from "@/types/healthInsurance";
 import { XMarkIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
+import Loading from "@/components/Loading";
 
 type Entity = "doctor" | "patient" | "health_insurance";
 
@@ -23,6 +24,7 @@ export default function ReportPage() {
   const [isHealthInsuranceOpen, setIsHealthInsuranceOpen] = useState(false);
   const [selectedHealthInsurances, setSelectedHealthInsurances] = useState<HealthInsurance[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchHealthInsurances = async (limit = 50, page = 1) => {
@@ -94,6 +96,7 @@ export default function ReportPage() {
 
   const handleGenerate = async () => {
     try {
+      setLoading(true);
       const response = await generateReport(entity, filters, pagination.limit, 1);
       setData(response.data || []);
       setPagination((prev) => ({
@@ -105,6 +108,8 @@ export default function ReportPage() {
       setHasGenerated(true);
     } catch (error) {
       console.error("Erro ao gerar relatório");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -124,6 +129,7 @@ export default function ReportPage() {
         : Math.max(1, pagination.page - 1);
 
     try {
+      setLoading(true);
       const response = await generateReport(entity, filters, pagination.limit, newPage);
       setData(response.data || []);
       setPagination((prev) => ({
@@ -134,6 +140,8 @@ export default function ReportPage() {
       }));
     } catch (error) {
       console.error("Erro ao mudar página do relatório");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -258,96 +266,102 @@ export default function ReportPage() {
           </div>
         </div>
 
-        {hasGenerated && data.length > 0 && (
+        {hasGenerated && (
           <div className="bg-white p-4 rounded-lg shadow-lg border border-blue-100">
             <h2 className="title-md mb-3 text-gray-700">Resultados</h2>
             <p className="text-xs text-gray-600 mb-2">
               Total de resultados: <span className="font-medium">{pagination.total}</span>
             </p>
             <div className="overflow-x-auto">
-              <table className="w-full text-left table-auto border-collapse">
-                <thead>
-                  <tr className="border-b">
-                    {Object.keys(data[0])
-                      .filter((key) => key !== "id")
-                      .map((key) => (
-                        <th key={key} className="py-2 px-3 font-medium text-gray-600 capitalize text-xs">
-                          {key}
-                        </th>
+              {loading ? (
+                <Loading />
+              ) : (
+                data.length > 0 ? (
+                  <table className="w-full text-left table-auto border-collapse">
+                    <thead>
+                      <tr className="border-b">
+                        {Object.keys(data[0])
+                          .filter((key) => key !== "id")
+                          .map((key) => (
+                            <th key={key} className="py-2 px-3 font-medium text-gray-600 capitalize text-xs">
+                              {key}
+                            </th>
+                          ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.map((item, index) => (
+                        <tr key={index} className="border-b hover:bg-gray-50">
+                          {Object.entries(item)
+                            .filter(([key]) => key !== "id")
+                            .map(([key, value]) => (
+                              <td key={key} className="py-2 px-3 text-sm">
+                                {typeof value === "string" && value.includes("T") && !isNaN(Date.parse(value))
+                                  ? new Date(value).toLocaleDateString()
+                                  : typeof value === "object" && value !== null && "name" in value
+                                    ? (value as { name: string }).name
+                                    : String(value || '')}
+                              </td>
+                            ))}
+                        </tr>
                       ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.map((item, index) => (
-                    <tr key={index} className="border-b hover:bg-gray-50">
-                      {Object.entries(item)
-                        .filter(([key]) => key !== "id")
-                        .map(([key, value]) => (
-                          <td key={key} className="py-2 px-3 text-sm">
-                            {typeof value === "string" && value.includes("T") && !isNaN(Date.parse(value))
-                              ? new Date(value).toLocaleDateString()
-                              : String(value || '')}
-                          </td>
-                        ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className="bg-white p-6 rounded-2xl shadow-xl border border-blue-100 text-center text-gray-600">
+                    Nenhum dado encontrado com os filtros fornecidos.
+                  </div>
+                )
+              )}
             </div>
-
             {/* Paginação */}
-            <div className="mt-4 flex items-center justify-between">
-              <div className="flex-1 flex justify-between sm:hidden">
-                <button
-                  onClick={() => handlePageChange("prev")}
-                  disabled={pagination.page === 1}
-                  className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Anterior
-                </button>
-                <button
-                  onClick={() => handlePageChange("next")}
-                  disabled={pagination.page === pagination.totalPages}
-                  className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Próximo
-                </button>
-              </div>
-              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm text-gray-700">
-                    Página <span className="font-medium">{pagination.page}</span> de <span className="font-medium">{pagination.totalPages}</span>
-                  </p>
+            {!loading && data.length > 0 && (
+              <div className="mt-4 flex items-center justify-between">
+                <div className="flex-1 flex justify-between sm:hidden">
+                  <button
+                    onClick={() => handlePageChange("prev")}
+                    disabled={pagination.page === 1}
+                    className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Anterior
+                  </button>
+                  <button
+                    onClick={() => handlePageChange("next")}
+                    disabled={pagination.page === pagination.totalPages}
+                    className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Próximo
+                  </button>
                 </div>
-                <div>
-                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                    <button
-                      onClick={() => handlePageChange("prev")}
-                      disabled={pagination.page === 1}
-                      className="relative inline-flex items-center px-2 py-1 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Anterior
-                    </button>
-                    <button
-                      onClick={() => handlePageChange("next")}
-                      disabled={pagination.page === pagination.totalPages}
-                      className="relative inline-flex items-center px-2 py-1 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Próximo
-                    </button>
-                  </nav>
+                <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm text-gray-700">
+                      Página <span className="font-medium">{pagination.page}</span> de <span className="font-medium">{pagination.totalPages}</span>
+                    </p>
+                  </div>
+                  <div>
+                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                      <button
+                        onClick={() => handlePageChange("prev")}
+                        disabled={pagination.page === 1}
+                        className="relative inline-flex items-center px-2 py-1 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Anterior
+                      </button>
+                      <button
+                        onClick={() => handlePageChange("next")}
+                        disabled={pagination.page === pagination.totalPages}
+                        className="relative inline-flex items-center px-2 py-1 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Próximo
+                      </button>
+                    </nav>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         )}
-
-        {hasGenerated && data.length === 0 && (
-          <div className="bg-white p-6 rounded-2xl shadow-xl border border-blue-100 text-center text-gray-600">
-            Nenhum dado encontrado com os filtros fornecidos.
-          </div>
-        )}
-
       </div>
     </main>
   );

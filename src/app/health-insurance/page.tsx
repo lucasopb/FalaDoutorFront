@@ -10,6 +10,7 @@ import {
   deleteHealthInsurance,
 } from "@/lib/api";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import Loading from "@/components/Loading";
 
 export default function HealthInsurancePage() {
   const [insurances, setInsurances] = useState<HealthInsurance[]>([]);
@@ -17,12 +18,14 @@ export default function HealthInsurancePage() {
   const [editId, setEditId] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [pagination, setPagination] = useState({ total: 0, limit: 1, page: 1, totalPages: 0 });
-
+  const [loading, setLoading] = useState(false);
 
   const loadData = async (limit = pagination.limit, page = pagination.page) => {
+    setLoading(true);
     const res = await getHealthInsurance(limit, page);
     setInsurances(res.data);
     setPagination(res.pagination);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -201,77 +204,80 @@ export default function HealthInsurancePage() {
 
         <div className="bg-white rounded-lg shadow-lg border border-green-100 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Nome
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Código
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Valor Base
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ações
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {insurances.map((item) => (
-                  <React.Fragment key={item.id}>
-                    <tr className="hover:bg-green-50 transition-colors">
-                      <td className="px-4 py-3 text-sm text-gray-900 text-center">{item.name}</td>
-                      <td className="px-4 py-3 text-sm text-gray-900 text-center">{item.code}</td>
-                      <td className="px-4 py-3 text-sm text-gray-900 text-center">
-                        R$ {Number(item.baseValue).toFixed(2)}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-900 text-center">
-                        <div className="flex justify-center space-x-2">
-                          <button
-                            onClick={() => handleEdit(item)}
-                            className="action-icon edit-icon"
-                          >
-                            <PencilIcon className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(item.id)}
-                            className="action-icon delete-icon"
-                          >
-                            <TrashIcon className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-
-                    {/* Lista de pacientes */}
-                    {item.patients && item.patients.length > 0 && (
-                      <tr>
-                        <td colSpan={4} className="px-4 py-3 bg-emerald-50 text-sm">
-                          <div>
-                            <p className="font-semibold mb-2 text-emerald-700 text-xs">
-                              Pacientes vinculados:
-                            </p>
-                            <div className="flex flex-wrap gap-3">
-                              {item.patients.map((patient) => (
-                                <div
-                                  key={patient.id}
-                                  className="p-3 bg-green-50 border border-green-200 rounded-lg shadow-sm"
-                                >
-                                  <p className="font-semibold text-gray-700 text-xs">{patient.name}</p>
-                                  <p className="text-gray-500 text-xs">CPF: {formatCpf(patient.cpf)}</p>
-                                </div>
-                              ))}
-                            </div>
+            {loading ? (
+              <Loading />
+            ) : (
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Nome
+                    </th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Código
+                    </th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Valor Base
+                    </th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Ações
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {insurances.map((item) => (
+                    <React.Fragment key={item.id}>
+                      <tr className="hover:bg-green-50 transition-colors">
+                        <td className="px-4 py-3 text-sm text-gray-900 text-center">{item.name}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900 text-center">{item.code}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900 text-center">
+                          R$ {Number(item.baseValue).toFixed(2)}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-900 text-center">
+                          <div className="flex justify-center space-x-2">
+                            <button
+                              onClick={() => handleEdit(item)}
+                              className="action-icon edit-icon"
+                            >
+                              <PencilIcon className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(item.id)}
+                              className="action-icon delete-icon"
+                            >
+                              <TrashIcon className="h-4 w-4" />
+                            </button>
                           </div>
                         </td>
                       </tr>
-                    )}
-                  </React.Fragment>
-                ))}
-              </tbody>
-            </table>
+                      {/* Lista de pacientes */}
+                      {item.patients && item.patients.length > 0 && (
+                        <tr>
+                          <td colSpan={4} className="px-4 py-3 bg-emerald-50 text-sm">
+                            <div>
+                              <p className="font-semibold mb-2 text-emerald-700 text-xs">
+                                Pacientes vinculados:
+                              </p>
+                              <div className="flex flex-wrap gap-3">
+                                {item.patients.map((patient) => (
+                                  <div
+                                    key={patient.id}
+                                    className="p-3 bg-green-50 border border-green-200 rounded-lg shadow-sm"
+                                  >
+                                    <p className="font-semibold text-gray-700 text-xs">{patient.name}</p>
+                                    <p className="text-gray-500 text-xs">CPF: {formatCpf(patient.cpf)}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
 
           {/* Paginação */}
