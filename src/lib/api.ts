@@ -4,7 +4,9 @@ import { Patient } from "@/types/patient";
 import { HealthInsurance } from "@/types/healthInsurance";
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "https://faladoutorapi.onrender.com",
+  /* baseURL: process.env.NEXT_PUBLIC_API_URL || "https://faladoutorapi.onrender.com", */
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
+
 });
 
 // ---------------- MÉDICOS ----------------
@@ -272,3 +274,62 @@ export const importHealthInsurances = async (file: File) => {
   }
 };
 
+// Appointments
+
+export const createAppointment = async (appointment: {
+  doctorId: string;
+  patientId: string;
+  date: string;
+  observation?: string;
+}) => {
+  try {
+    const res = await api.post("/appointment", appointment);
+    return res.data;
+  } catch (error: any) {
+    console.error("Erro ao criar consulta:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const getAppointments = async () => {
+  try {
+    const res = await api.get("/appointment");
+    return res.data;
+  } catch (error: any) {
+    console.error("Erro ao consultas:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const getAppointmentById = async (id: string) => {
+  try {
+    const res = await api.get(`/appointment/${id}`);
+    return res.data;
+  } catch (error: any) {
+    console.error("Erro ao buscar consulta:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const deleteAppointment = async (id: string) => {
+  try {
+    const res = await api.delete(`/appointment/${id}`);
+    return res.data;
+  } catch (error: any) {
+    console.error("Erro ao deletar consulta:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const updateAppointment = async (
+  id: string,
+  data: { date?: string; observation?: string }
+) => {
+  try {
+    const res = await api.put(`/appointment/${id}`, data);
+    return res.data;
+  } catch (error: any) {
+    console.error("Erro ao atualizar consulta:", error.response?.data || error.message);
+    throw error;
+  }
+};

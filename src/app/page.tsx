@@ -92,6 +92,21 @@ export default function Home() {
               </p>
             </div>
           </Link>
+
+          <Link
+            href="/appointment"
+            className="group relative bg-white rounded-lg p-6 text-center transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-indigo-500/20 border border-indigo-100 overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 group-hover:from-indigo-500/10 group-hover:to-purple-500/10 transition-all duration-300" />
+            <div className="relative z-10">
+              <h3 className="title-md text-indigo-600 mb-2 group-hover:text-indigo-700 transition-colors">
+                consultas
+              </h3>
+              <p className="text-sm text-gray-600 group-hover:text-gray-700 transition-colors">
+                Gerencie as consultas
+              </p>
+            </div>
+          </Link>
         </div>
       </div>
     </main>
