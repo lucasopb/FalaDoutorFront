@@ -12,6 +12,10 @@ import { Patient } from "@/types/patient";
 
 type Entity = "doctor" | "patient" | "health_insurance" | "appointment";
 
+function isRecord(val: unknown): val is Record<string, any> {
+  return typeof val === 'object' && val !== null;
+}
+
 export default function ReportPage() {
   const [entity, setEntity] = useState<Entity>("doctor");
   const [healthInsurances, setHealthInsurances] = useState<{ data: HealthInsurance[]; pagination: string }>({ data: [], pagination: "" });
@@ -393,13 +397,13 @@ export default function ReportPage() {
                               <td key={key} className="py-2 px-4 text-sm">
                                 {key === "date" && typeof value === "string" && value.includes("T") && !isNaN(Date.parse(value))
                                   ? new Date(value).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })
-                                  : key === "healthInsurance" && typeof value === "object" && value !== null && "name" in value
-                                    ? value.name
-                                    : key === "patient" && typeof value === "object" && value !== null && "name" in value 
+                                  : key === "healthInsurance" && isRecord(value) && "healthInsurance" in value && value.healthInsurance && "name" in value.healthInsurance
+                                    ? value.healthInsurance.name
+                                    : key === "patient" && isRecord(value) && "name" in value
                                       ? value.name
-                                      : typeof value === "object" && value !== null && value.healthInsurance && value.healthInsurance.name
+                                      : isRecord(value) && "healthInsurance" in value && value.healthInsurance && "name" in value.healthInsurance
                                         ? value.healthInsurance.name
-                                        : typeof value === "object" && value !== null && "name" in value
+                                        : isRecord(value) && "name" in value
                                           ? value.name
                                           : String(value || '')}
                               </td>
