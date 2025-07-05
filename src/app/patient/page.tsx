@@ -198,7 +198,7 @@ export default function HomePage() {
               </label>
               <select
                 name="healthInsurance"
-                value={form.healthInsurance ? form.healthInsurance.id : ""}
+                value={form.healthInsurance || ""}
                 onChange={handleChange}
                 className="input-field w-70 group-hover:border-indigo-300 transition-colors"
               >

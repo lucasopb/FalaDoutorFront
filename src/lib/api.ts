@@ -333,3 +333,13 @@ export const updateAppointment = async (
     throw error;
   }
 };
+
+export const getTodayNotifications = async () => {
+  try {
+    const res = await api.get("/notifications/today");
+    return res.data;
+  } catch (error: any) {
+    console.error("Erro ao buscar notificações do dia:", error.response?.data || error.message);
+    throw error;
+  }
+};

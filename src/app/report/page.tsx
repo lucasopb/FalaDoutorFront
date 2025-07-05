@@ -3,15 +3,20 @@
 import { useState, useEffect, useRef } from "react";
 import { generateReport } from "@/lib/api";
 import { getHealthInsurance } from "@/lib/api";
+import { getDoctors, getPatients } from "@/lib/api";
 import { HealthInsurance } from "@/types/healthInsurance";
 import { XMarkIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 import Loading from "@/components/Loading";
+import { Doctor } from "@/types/doctor";
+import { Patient } from "@/types/patient";
 
-type Entity = "doctor" | "patient" | "health_insurance";
+type Entity = "doctor" | "patient" | "health_insurance" | "appointment";
 
 export default function ReportPage() {
   const [entity, setEntity] = useState<Entity>("doctor");
   const [healthInsurances, setHealthInsurances] = useState<{ data: HealthInsurance[]; pagination: string }>({ data: [], pagination: "" });
+  const [doctors, setDoctors] = useState<{ data: Doctor[]; pagination: string }>({ data: [], pagination: "" });
+  const [patients, setPatients] = useState<{ data: Patient[]; pagination: string }>({ data: [], pagination: "" });
   const [filters, setFilters] = useState<Record<string, any>>({});
   const [data, setData] = useState<any[]>([]);
   const [pagination, setPagination] = useState({
@@ -35,8 +40,25 @@ export default function ReportPage() {
         console.error("Erro ao buscar convênios:", err);
       }
     };
-
+    const fetchDoctors = async (limit = 50, page = 1) => {
+      try {
+        const result = await getDoctors(limit, page);
+        setDoctors(result);
+      } catch (err) {
+        console.error("Erro ao buscar médicos:", err);
+      }
+    };
+    const fetchPatients = async (limit = 50, page = 1) => {
+      try {
+        const result = await getPatients(limit, page);
+        setPatients(result);
+      } catch (err) {
+        console.error("Erro ao buscar pacientes:", err);
+      }
+    };
     fetchHealthInsurances();
+    fetchDoctors();
+    fetchPatients();
   }, []);
 
   useEffect(() => {
@@ -231,6 +253,70 @@ export default function ReportPage() {
             <input name="baseValueMax" type="number" placeholder="Valor máximo" onChange={handleChange} value={filters.baseValueMax ?? ""} className="input-field" />
           </>
         );
+      case "appointment":
+        return (
+          <>
+            <select
+              name="doctorId"
+              value={filters.doctorId ?? ""}
+              onChange={e => setFilters(prev => ({ ...prev, doctorId: e.target.value }))}
+              className="input-field"
+            >
+              <option value="">Selecione o médico</option>
+              {doctors.data.map((doc) => (
+                <option key={doc.id} value={doc.id}>
+                  {doc.name} ({doc.cpf})
+                </option>
+              ))}
+            </select>
+            <select
+              name="patientId"
+              value={filters.patientId ?? ""}
+              onChange={e => setFilters(prev => ({ ...prev, patientId: e.target.value }))}
+              className="input-field"
+            >
+              <option value="">Selecione o paciente</option>
+              {patients.data.map((pat) => (
+                <option key={pat.id} value={pat.id}>
+                  {pat.name} ({pat.cpf})
+                </option>
+              ))}
+            </select>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold text-gray-700 mb-1">Data mínima</label>
+              <input
+                name="dateMin"
+                type="date"
+                placeholder="Data mínima"
+                onChange={e => setFilters(prev => ({ ...prev, dateMin: e.target.value }))}
+                value={filters.dateMin ?? ""}
+                className="input-field"
+              />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold text-gray-700 mb-1">Data máxima</label>
+              <input
+                name="dateMax"
+                type="date"
+                placeholder="Data máxima"
+                onChange={e => setFilters(prev => ({ ...prev, dateMax: e.target.value }))}
+                value={filters.dateMax ?? ""}
+                className="input-field"
+              />
+            </div>
+            <select
+              name="healthInsurance"
+              value={filters.healthInsurance ?? ""}
+              onChange={e => setFilters(prev => ({ ...prev, healthInsurance: e.target.value }))}
+              className="input-field"
+            >
+              <option value="">Selecione o convênio</option>
+              {healthInsurances.data.map((hi) => (
+                <option key={hi.id} value={hi.name}>{hi.name}</option>
+              ))}
+            </select>
+          </>
+        );
     }
   };
 
@@ -252,6 +338,7 @@ export default function ReportPage() {
               <option value="doctor">Médico</option>
               <option value="patient">Paciente</option>
               <option value="health_insurance">Convênio</option>
+              <option value="appointment">Consulta</option>
             </select>
           </div>
 
@@ -283,10 +370,18 @@ export default function ReportPage() {
                         {Object.keys(data[0])
                           .filter((key) => key !== "id")
                           .map((key) => (
-                            <th key={key} className="py-2 px-3 font-medium text-gray-600 capitalize text-xs">
-                              {key}
+                            <th key={key} className="py-2 px-4 font-medium text-gray-600 capitalize text-xs">
+                              {key === "date" ? "Data/Hora" : key === "healthInsurance" ? "Convênio" : key === "patient" ? "Paciente" : key}
                             </th>
                           ))}
+                        {/* Se não existir healthInsurance, adiciona coluna */}
+                        {data[0].healthInsurance === undefined &&
+                          typeof data[0].patient === 'object' &&
+                          data[0].patient !== null &&
+                          'healthInsurance' in (data[0].patient as any) &&
+                          (
+                            <th className="py-2 px-4 font-medium text-gray-600 capitalize text-xs">Convênio</th>
+                          )}
                       </tr>
                     </thead>
                     <tbody>
@@ -295,14 +390,28 @@ export default function ReportPage() {
                           {Object.entries(item)
                             .filter(([key]) => key !== "id")
                             .map(([key, value]) => (
-                              <td key={key} className="py-2 px-3 text-sm">
-                                {typeof value === "string" && value.includes("T") && !isNaN(Date.parse(value))
-                                  ? new Date(value).toLocaleDateString()
-                                  : typeof value === "object" && value !== null && "name" in value
-                                    ? (value as { name: string }).name
-                                    : String(value || '')}
+                              <td key={key} className="py-2 px-4 text-sm">
+                                {key === "date" && typeof value === "string" && value.includes("T") && !isNaN(Date.parse(value))
+                                  ? new Date(value).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })
+                                  : key === "healthInsurance" && typeof value === "object" && value !== null && "name" in value
+                                    ? value.name
+                                    : key === "patient" && typeof value === "object" && value !== null && "name" in value 
+                                      ? value.name
+                                      : typeof value === "object" && value !== null && value.healthInsurance && value.healthInsurance.name
+                                        ? value.healthInsurance.name
+                                        : typeof value === "object" && value !== null && "name" in value
+                                          ? value.name
+                                          : String(value || '')}
                               </td>
                             ))}
+                          {/* Se não existir healthInsurance, adiciona coluna */}
+                          {item.healthInsurance === undefined &&
+                            typeof item.patient === 'object' &&
+                            item.patient !== null &&
+                            'healthInsurance' in (item.patient as any) &&
+                            (
+                              <td className="py-2 px-4 text-sm">{((item.patient as any).healthInsurance && typeof (item.patient as any).healthInsurance === 'object' && 'name' in (item.patient as any).healthInsurance) ? (item.patient as any).healthInsurance.name : ''}</td>
+                            )}
                         </tr>
                       ))}
                     </tbody>
